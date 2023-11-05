@@ -1,0 +1,113 @@
+:root {
+  --swiper-theme-color: #4496A4 !important;
+}
+
+body {
+  overflow-x: hidden;
+  margin-left: 54px;
+  margin-right: 54px;
+  margin-top: 0;
+  margin-bottom: 0;
+  background-color: #A5D1BA;
+}
+h1, h2, h3, label {
+  font-family: $headers-font;
+  text-decoration: none;
+}
+
+p, a, label, input, legend{
+  font-family: $body-font;
+  text-decoration: none;
+  margin-block-start: 0em;
+  margin-block-end: 0em;
+}
+
+h1 {
+  font-size: 24px;
+  margin-block-start: 0em;
+  margin-block-end: 0em;
+}
+
+.video-card {
+  position: relative;
+  width: fit-content;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.carousel-container {
+  height: 70vh;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.video {
+  border-radius: 25px;
+  max-height: calc(70vh - 20px);
+  max-width: calc(100vw - 120px);
+}
+
+.swiper-pagination-bullets-dynamic {
+  margin-bottom: 6vh;
+}
+
+.bottom-video-card {
+  height: 30px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.user-panel {
+  display: flex;
+}
+
+.delete-button, .add-tag-button, .remove-tag-button{
+  height: 30px;
+  width: 30px;
+  background-size: 30px;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: block;
+}
+
+.delete-button {
+  left: 5px;
+  background-color: #E38294;
+  background-image: image-url("trash2.svg");
+}
+.add-tag-button {
+  right: 5px;
+  background-color: #DD9842;
+  background-image: image-url("heart2.svg");
+}
+
+.nav-button {
+  position: absolute;
+  height: 40px;
+  width: 40px;
+  top: 5px;
+  background-size: 45px;
+  border-radius: 25px;
+  z-index: 10;
+}
+
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  text-align: center;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

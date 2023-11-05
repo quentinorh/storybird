@@ -1,2 +1,38 @@
-<h1>Pages#home</h1>
-<p>Find me in app/views/pages/home.html.erb</p>
+<div class="carousel-container">
+  <div data-controller="carousel" class="swiper-container"
+      data-carousel-options-value='{
+      "spaceBetween": 30,
+      "pagination": { "el": ".swiper-pagination",
+                      "dynamicBullets": "true" },
+      "navigation": { "nextEl": ".swiper-button-next",
+                      "prevEl": ".swiper-button-prev"}}'>
+
+    <!-- Pagination (... or 1/10 or progress bar) -->
+    <div class="swiper-pagination"></div>
+
+    <!-- Navigation buttons (< >) -->
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+
+    <div class="swiper-wrapper">
+      <!-- Slides -->
+      <% @videos.each do |video| %>
+        <div class="swiper-slide slider">
+          <div class="video-card">
+            <% if user_signed_in? %>
+              <%= link_to delete_video_path(id: video[:public_id]), data: { turbo_method: :delete }, class: "delete-button nav-button" do %><% end %>
+              <%= link_to add_tag_path(id: video[:public_id]), data: { turbo_method: :post }, class: "add-tag-button nav-button" do %><% end %>
+            <% end %>
+            <video class="video" controls>
+              <source src="<%= video[:url] %>" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <div class="bottom-video-card">
+              <p><%= video[:created_at].to_time.strftime("%d/%m/%Y %H:%M") %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
