@@ -2,10 +2,16 @@
   --swiper-theme-color: #4496A4 !important;
 }
 
-body {
+html, body {
   overflow-x: hidden;
-  margin-left: 54px;
-  margin-right: 54px;
+  overflow-y: hidden;
+}
+body {
+  position: relative;
+  height: 100vh;
+}
+
+body {
   margin-top: 0;
   margin-bottom: 0;
   background-color: #A5D1BA;
@@ -50,7 +56,7 @@ h1 {
 
 .video {
   border-radius: 25px;
-  max-height: calc(70vh - 20px);
+  max-height: calc(80vh - 20px);
   max-width: calc(100vw - 120px);
 }
 
