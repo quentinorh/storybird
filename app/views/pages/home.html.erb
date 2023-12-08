@@ -8,7 +8,6 @@
     <!-- Navigation buttons (< >) -->
     <div class="swiper-button-prev"></div>
     <div class="swiper-button-next"></div>
-
     <div class="swiper-wrapper">
       <!-- Slides -->
       <% @videos.each do |video| %>
@@ -21,13 +20,12 @@
               <%# <%= link_to "#", class: "remove-tag-button nav-button", data: { controller: "tag", action: "click->tag#removeTag", tag_id_value: video[:public_id]} do %>
               <%# <% end %>
             <% end %>
-            <div class="border-radius">
 
               <video class="video" controls>
                 <source src="<%= video[:url] %>" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
-            </div>
+
             <div class="bottom-video-card">
               <p><%= video[:created_at].to_time.strftime("%d/%m/%Y %H:%M") %></p>
             </div>
