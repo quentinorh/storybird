@@ -12,3 +12,5 @@ eagerLoadControllersFrom("controllers", application)
 
 
 // app/javascript/controllers/index.js
+import TagController from "./tag_controller"
+application.register("tag", TagController)

@@ -2,7 +2,7 @@ require 'cloudinary'
 
 class PagesController < ApplicationController
   skip_before_action :authenticate_user!, only: [:home]
-  before_action :authenticate_user!, only: [:add_tag_to_video, :remove_tag_from_video]
+  before_action :authenticate_user!, only: [:add_tag, :remove_tag, :destroy]
 
   def home
     @videos = Cloudinary::Api.resources(
@@ -18,25 +18,7 @@ class PagesController < ApplicationController
     end.sort_by { |video| video[:created_at] }.reverse
   end
 
-  def destroy
-    # Assurez-vous que l'utilisateur est authentifié
-    unless user_signed_in?
-      redirect_to new_user_session_path, alert: 'You must be signed in to do that.'
-      return
-    end
-
-    public_id = params[:id]
-    begin
-      Cloudinary::Uploader.destroy(public_id, resource_type: :video)
-      flash[:notice] = 'Video deleted successfully.'
-    rescue => e
-      flash[:alert] = 'There was a problem deleting the video.'
-    end
-
-    redirect_to root_path
-  end
-
-  def add_tag_to_video
+  def add_tag
     public_id = params[:id]
     tag = 'favoris'
 
@@ -47,10 +29,13 @@ class PagesController < ApplicationController
       flash[:alert] = "There was a problem adding the tag: #{e.message}"
     end
 
-    redirect_to root_path
+    respond_to do |format|
+      format.html { redirect_to root_path }
+      format.js   # Rails va chercher un fichier .js.erb avec le même nom que l'action
+    end
   end
 
-  def remove_tag_from_video
+  def remove_tag
     public_id = params[:id]
     tag = 'favoris'
 
@@ -61,7 +46,26 @@ class PagesController < ApplicationController
       flash[:alert] = "There was a problem removing the tag: #{e.message}"
     end
 
-    redirect_to root_path
+    respond_to do |format|
+      format.html { redirect_to root_path }
+      format.js
+    end
+  end
+
+  def destroy
+    public_id = params[:id]
+
+    begin
+      Cloudinary::Uploader.destroy(public_id, resource_type: :video)
+      flash[:notice] = 'Video deleted successfully.'
+    rescue => e
+      flash[:alert] = "There was a problem deleting the video: #{e.message}"
+    end
+
+    respond_to do |format|
+      format.html { redirect_to root_path }
+      format.js
+    end
   end
 
 end

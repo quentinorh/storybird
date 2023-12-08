@@ -1,0 +1,8 @@
+// app/views/pages/add_tag.js.erb
+
+// Supposons que chaque vidéo a une div avec un id unique basé sur le public_id de la vidéo
+const videoElement = document.getElementById("<%= j params[:id] %>");
+
+// Vous pouvez maintenant mettre à jour cette div pour refléter le changement de tags.
+// Par exemple, si vous voulez montrer que le tag a été ajouté:
+videoElement.innerHTML += "<span class='tag'>Favoris</span>";

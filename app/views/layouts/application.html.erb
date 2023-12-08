@@ -11,6 +11,7 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
     />
+    <link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet">
     <%= javascript_importmap_tags %>
   </head>
 
@@ -18,5 +19,9 @@
 <%= render "shared/flashes" %>
 
     <%= yield %>
+    <script src="https://unpkg.com/video.js/dist/video.js"></script>
+    <script>
+      var player = videojs('my-video');
+    </script>
   </body>
 </html>

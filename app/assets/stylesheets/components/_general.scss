@@ -84,23 +84,34 @@ h1 {
   display: block;
 }
 
-.delete-button {
+.delete-video-button {
   left: 5px;
+  background-size: 36px;
   background-color: #E38294;
   background-image: image-url("trash2.svg");
 }
+
 .add-tag-button {
   right: 5px;
+  background-size: 36px;
   background-color: #DD9842;
-  background-image: image-url("heart2.svg");
+  background-image: image-url("star.svg");
+}
+
+.remove-tag-button {
+  right: 5px;
+  background-size: 36px;
+  background-color: #DD9842;
+  background-image: image-url("star.svg");
 }
 
 .nav-button {
+  background-position: center;
+  background-repeat: no-repeat;
   position: absolute;
   height: 40px;
   width: 40px;
   top: 5px;
-  background-size: 45px;
   border-radius: 25px;
   z-index: 10;
 }
@@ -133,4 +144,24 @@ h1 {
 .swiper-button-prev {
   left: 50px !important;
   font-weight: 900;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* Ratio d'aspect 16:9 */
+}
+.video-js {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Exemple de media query pour les petits écrans */
+@media (max-width: 600px) {
+  .video-container {
+      padding-top: 177.77%; /* Ratio d'aspect 9:16 */
+  }
 }
