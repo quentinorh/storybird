@@ -21,10 +21,15 @@
               <%# <%= link_to "#", class: "remove-tag-button nav-button", data: { controller: "tag", action: "click->tag#removeTag", tag_id_value: video[:public_id]} do %>
               <%# <% end %>
             <% end %>
-            <div class="video-container">
-                <video id="my-video" class="video-js" controls preload="auto">
-                    <source src="<%= video[:url] %>" type="video/mp4">
-                </video>
+            <div class="border-radius">
+              <video
+                  id="my-video"
+                  class="video-js"
+                  controls
+                  preload="auto"
+                  data-setup="{}">
+                  <source src="<%= video[:url] %>" type="video/mp4">
+              </video>
             </div>
             <div class="bottom-video-card">
               <p><%= video[:created_at].to_time.strftime("%d/%m/%Y %H:%M") %></p>
