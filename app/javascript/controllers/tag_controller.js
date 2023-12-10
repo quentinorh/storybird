@@ -30,11 +30,7 @@ export default class extends Controller {
       type: 'DELETE',
       url: `/destroy_video/${this.idValue}`,
       success: (_, status, xhr) => {
-        // Trouver la div par data-video-id et la supprimer du DOM
         this.element.closest(`[data-video-id='${videoId}']`).remove();
-        // Vous pourriez vouloir actualiser le carousel après la suppression
-        // Si vous utilisez Swiper par exemple :
-        // this.swiper.update(); // Supposant que `this.swiper` est votre instance Swiper
       }
     })
   }

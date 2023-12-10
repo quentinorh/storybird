@@ -7,14 +7,13 @@
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     <link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet">
+    <link href="https://unpkg.com/@videojs/themes@1/dist/sea/index.css" rel="stylesheet">
     <%= javascript_importmap_tags %>
   </head>
-
-  <body><%= render "shared/navbar" %>
-<%= render "shared/flashes" %>
-
+  <body>
+    <%= render "shared/navbar" %>
+    <%= render "shared/flashes" %>
     <%= yield %>
     <script src="https://unpkg.com/video.js/dist/video.js"></script>
     <script>

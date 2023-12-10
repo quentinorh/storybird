@@ -1,10 +1,5 @@
-:root {
-  --swiper-theme-color: #4496A4 !important;
-}
-
 html, body {
   overflow-x: hidden;
-  overflow-y: hidden;
 }
 body {
   position: relative;
@@ -12,8 +7,7 @@ body {
 }
 
 body {
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 0;
   background-color: #A5D1BA;
 }
 h1, h2, h3, label {
@@ -48,20 +42,23 @@ h1 {
   margin-left: auto;
 }
 
-.carousel-container {
-  height: 70vh;
-  margin-top: auto;
-  margin-bottom: auto;
+.vjs-big-play-button {
+  display: none !important;
 }
 
 .video {
-  border-radius: 25px;
-  max-height: calc(80vh - 20px);
-  max-width: calc(100vw - 120px);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: transparent !important;
 }
 
-.swiper-pagination-bullets-dynamic {
-  margin-bottom: 6vh;
+
+.video-container {
+  border-radius: 25px;
+  width: calc(70vh * 720/1280);
+  height: calc(70vh);
+  overflow: hidden;
 }
 
 .bottom-video-card {
@@ -119,39 +116,4 @@ h1 {
   top: 5px;
   border-radius: 25px;
   z-index: 10;
-}
-
-.swiper {
-  width: 100%;
-  height: 100%;
-}
-
-.swiper-slide {
-  text-align: center;
-  font-size: 18px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.swiper-slide img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.swiper-button-next {
-  right: 50px !important;
-  font-weight: 900;
-}
-
-.swiper-button-prev {
-  left: 50px !important;
-  font-weight: 900;
-}
-
-.video-js {
-  width: calc((85vh - 50px)*(720/1280));
-  height: calc(85vh - 50px);
 }
