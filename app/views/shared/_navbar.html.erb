@@ -1,3 +1,16 @@
+<div class="menu">
+  <% if user_signed_in? %>
+    <%= link_to "Log out ", destroy_user_session_path, class: "button", data: {turbo_method: :delete} %>
+    |
+    <% if current_page?(root_path) %>
+      <%= link_to " Favorites", favorites_path, class: "button" %>
+    <% else %>
+      <%= link_to " Home", root_path, class: "button" %>
+    <% end %>
+  <% else %>
+    <%= link_to "Log in", new_user_session_path, class: "button" %>
+  <% end %>
+</div>
 <%=  link_to root_path, class: "navbar", title: "Story Bird" do %>
   <%= image_tag "logo.svg", class: "logo", alt: "Logo - StoryBird" %>
   <h1>Story Bird</h1>

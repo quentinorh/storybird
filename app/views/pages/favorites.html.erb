@@ -1,6 +1,20 @@
-
-<div class="video-container">
-  <video id="video" class="video" role="application">
-    <source src="http://res.cloudinary.com/dkv3sh4oq/video/upload/v1699616842/storybird1/m5zuw20aizfobyahricz.mp4" type="video/mp4">
-  </video>
-</div>
+<% @videos.each do |video| %>
+  <div class="video-card">
+    <% if user_signed_in? %>
+      <%= link_to "#", class: "delete-video-button nav-button", data: { controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]} do %><% end %>
+      <%= link_to "#", class: "remove-tag-button nav-button", data: { controller: "tag", action: "click->tag#removeTag", tag_id_value: video[:public_id]} do %><% end %>
+    <% end %>
+    <div class="video-container">
+      <video
+        id="my-video"
+        class="video-js  vjs-theme-sea"
+        controls
+        data-setup="{}">
+        <source src="<%= video[:url] %>" type="video/mp4">
+      </video>
+    </div>
+    <div class="bottom-video-card">
+      <p><%= video[:created_at].to_time.strftime("%d/%m/%Y %H:%M") %></p>
+    </div>
+  </div>
+<% end %>

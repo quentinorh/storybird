@@ -1,0 +1,44 @@
+.user-panel {
+  display: flex;
+}
+
+.delete-button, .add-tag-button, .remove-tag-button{
+  height: 30px;
+  width: 30px;
+  background-size: 30px;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: block;
+}
+
+.delete-video-button {
+  left: 5px;
+  background-size: 36px;
+  background-color: #E38294;
+  background-image: image-url("trash2.svg");
+}
+
+.add-tag-button {
+  right: 5px;
+  background-size: 36px;
+  background-color: #7e7e7e;
+  background-image: image-url("star.svg");
+}
+
+.remove-tag-button {
+  right: 5px;
+  background-size: 36px;
+  background-color: #DD9842;
+  background-image: image-url("star.svg");
+}
+
+.nav-button {
+  background-position: center;
+  background-repeat: no-repeat;
+  position: absolute;
+  height: 40px;
+  width: 40px;
+  top: 5px;
+  border-radius: 25px;
+  z-index: 10;
+}

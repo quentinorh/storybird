@@ -1,0 +1,59 @@
+.video-card {
+  position: relative;
+  width: fit-content;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.vjs-big-play-button {
+  opacity: 0% !important;
+  height: 100% !important;
+  width: 100% !important;
+  position: sticky !important;
+}
+
+.vjs-fullscreen-control {
+  display: none !important;
+}
+
+.vjs-tech, .video-js {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+}
+
+.vjs-theme-sea {
+  background-color: black !important;
+}
+
+:focus-visible {
+  outline: -webkit-focus-ring-color auto 0px !important;
+}
+
+.video-container {
+  margin-top: 40px;
+  border-radius: 25px 25px 0px 0px;
+  width: calc(60vh);
+  height: calc(60vh);
+  max-width: 90vw;
+  max-height: 90vw;
+  overflow: hidden;
+}
+
+.bottom-video-card {
+  border-radius: 0px 0px 25px 25px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.557);
+  font-family: $headers-font !important;
+  font-weight: bold;
+  color: #4496A4;
+}
+
+.border-radius {
+  border-radius: 25px;
+  overflow: hidden;
+}
