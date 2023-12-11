@@ -3,7 +3,7 @@
   height: 79px;
   -o-object-fit: contain;
   object-fit: contain;
-  background-color: hsla(0, 0%, 100%, .25);
+  background-color: hsla(0, 0%, 85%, 0.25);
   border: none;
   line-height: 79px;
   top: 50%;
@@ -14,12 +14,12 @@
 
 .vjs-theme-sea .vjs-control-bar {
   height: 4em;
-  background-color: hsla(0, 0%, 100%, .4)
+  background-color: hsla(0, 0%, 65%, 0.5);
 }
 
 .vjs-theme-sea .vjs-button:hover {
   color: #4496A4;
-  background: hsla(0, 0%, 100%, .4)
+  background-color: hsla(0, 0%, 81%, 0.5);
 }
 
 .vjs-theme-sea .vjs-button>.vjs-icon-placeholder:before {
@@ -48,7 +48,7 @@
 }
 
 .vjs-theme-sea .vjs-progress-control .vjs-load-progress div {
-  background: hsla(0, 0%, 100%, .5)
+  background-color: hsla(0, 0%, 81%, 0.5);
 }
 
 .vjs-theme-sea .vjs-progress-control .vjs-progress-holder {
@@ -58,10 +58,10 @@
 
 .vjs-theme-sea .vjs-progress-control .vjs-time-tooltip {
   background-color: rgba(65, 188, 106, 0.5);
-  color: #fff
+  color: #cecece
 }
 
 .vjs-theme-sea .vjs-progress-control .vjs-mouse-display .vjs-time-tooltip {
-  background-color: hsla(0, 0%, 100%, .7);
+  background-color: hsla(0, 0%, 81%, 0.5);
   color: #41bc4b
 }
