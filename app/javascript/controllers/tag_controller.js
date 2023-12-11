@@ -10,7 +10,6 @@ export default class extends Controller {
     event.preventDefault();
     console.log("Adding tag for video ID:", this.idValue);
     const button = event.target; // Récupère le bouton qui a déclenché l'événement
-
     Rails.ajax({
         type: 'POST',
         url: `/add_tag/${this.idValue}`,
@@ -27,7 +26,6 @@ export default class extends Controller {
       event.preventDefault();
       console.log("Removing tag for video ID:", this.idValue);
       const button = event.target; // Récupère le bouton qui a déclenché l'événement
-
       Rails.ajax({
           type: 'POST',
           url: `/remove_tag/${this.idValue}`,
@@ -44,7 +42,6 @@ export default class extends Controller {
   destroyVideo(event) {
     console.log("Deleting video ID:", this.idValue);
     event.preventDefault();
-
     // Ajouter un message de confirmation
     if (confirm("Êtes-vous sûr de vouloir supprimer cette vidéo ?")) {
         this.element.closest('.video-card').remove();
