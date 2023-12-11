@@ -1,11 +1,11 @@
 <% @videos.each do |video| %>
   <div class="video-card">
     <% if user_signed_in? %>
-      <%= button_to '', '#', method: :post, class: "delete-video-button nav-button", data: { controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]}, form: {  class: 'hidden' }%>
+      <%= button_to '', '', method: :post, class: "delete-video-button nav-button", data: { controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]}, form: {  class: 'hidden' }%>
       <% if video[:is_favorite] %>
-        <%= button_to '', '#', method: :post, class: "remove-tag-button nav-button", data: { controller: "tag", action: "click->tag#removeTag", tag_id_value: video[:public_id]}, form: {  class: 'hidden' }%>
+        <%= button_to '', '', method: :post, class: "remove-tag-button nav-button", data: { controller: "tag", action: "click->tag#removeTag", tag_id_value: video[:public_id]}, form: {  class: 'hidden' }%>
       <% else %>
-      <%= button_to '', '#', method: :post, class: "add-tag-button nav-button", data: {controller: "tag", action: "click->tag#addTag", tag_id_value: video[:public_id]}, form: {  class: 'hidden' }%>
+      <%= button_to '', '', method: :post, class: "add-tag-button nav-button", data: {controller: "tag", action: "click->tag#addTag", tag_id_value: video[:public_id]}, form: {  class: 'hidden' }%>
       <% end %>
     <% end %>
     <div class="video-container">
