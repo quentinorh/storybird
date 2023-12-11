@@ -10,7 +10,15 @@
         <%= link_to "", class: "add-tag-button nav-button", data: { controller: "tag", action: "click->tag#addTag", tag_id_value: video[:public_id]} do %><% end %>
       <% end %>
     <% end %>
-
+    <div class="video-container">
+      <video
+        id="my-video"
+        class="video-js  vjs-theme-sea"
+        controls
+        data-setup="{}">
+        <source src="<%= video[:url] %>" type="video/mp4">
+      </video>
+    </div>
     <div class="bottom-video-card">
       <p><%= video[:created_at].to_time.strftime("%d/%m/%Y %H:%M") %></p>
     </div>
