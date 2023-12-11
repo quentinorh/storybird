@@ -2,15 +2,15 @@
   <div class="video-card">
     <% if user_signed_in? %>
       <%= link_to "#", class: "delete-video-button nav-button", data: { controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]} do %><% end %>
-      <%# <%= link_to "#", class: "add-tag-button nav-button", data: { controller: "tag", action: "click->tag#addTag", tag_id_value: video[:public_id]} do %>
-      <%# <% end %>
+      <%= link_to "#", class: "add-tag-button nav-button", data: { controller: "tag", action: "click->tag#addTag", tag_id_value: video[:public_id]} do %>
+      <% end %>
       <%# <%= link_to "#", class: "remove-tag-button nav-button", data: { controller: "tag", action: "click->tag#removeTag", tag_id_value: video[:public_id]} do %>
       <%# <% end %>
     <% end %>
     <div class="video-container">
       <video
         id="my-video"
-        class="video video-js  vjs-theme-sea"
+        class="video-js  vjs-theme-sea"
         controls
         data-setup="{}">
         <source src="<%= video[:url] %>" type="video/mp4">
