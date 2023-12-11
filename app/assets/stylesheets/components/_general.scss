@@ -66,6 +66,10 @@ h1 {
   background-color: black !important;
 }
 
+:focus-visible {
+  outline: -webkit-focus-ring-color auto 0px !important;
+}
+
 .video-container {
   margin-top: 40px;
   border-radius: 25px 25px 0px 0px;
