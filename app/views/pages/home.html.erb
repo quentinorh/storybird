@@ -3,7 +3,7 @@
     <% if user_signed_in? %>
       <%= tag.button "destroy",
         type: "button",
-        class: "delete-video-button nav-button",
+        class: "",
         data: { controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]}
       %>
       <% if video[:is_favorite] %>
