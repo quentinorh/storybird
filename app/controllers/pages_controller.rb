@@ -50,6 +50,7 @@ class PagesController < ApplicationController
       flash[:alert] = "There was a problem adding the tag: #{e.message}"
     end
     respond_to do |format|
+      format.html { redirect_to root_path }
       format.js   # Rails va chercher un fichier .js.erb avec le même nom que l'action
     end
   end
@@ -64,6 +65,7 @@ class PagesController < ApplicationController
       flash[:alert] = "There was a problem removing the tag: #{e.message}"
     end
     respond_to do |format|
+      format.html { redirect_to root_path }
       format.js
     end
   end
@@ -77,6 +79,7 @@ class PagesController < ApplicationController
       flash[:alert] = "There was a problem deleting the video: #{e.message}"
     end
     respond_to do |format|
+      format.html { redirect_to root_path }
       format.js
     end
   end
