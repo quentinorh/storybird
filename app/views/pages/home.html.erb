@@ -1,24 +1,26 @@
-<% @videos.each do |video| %>
-  <div class="video-card">
-    <% if user_signed_in? %>
-      <%= link_to "#", class: "delete-video-button nav-button", data: { turbo: false,  controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]} do %><% end %>
-      <% if video[:is_favorite] %>
-        <%= link_to "", class: "remove-tag-button nav-button", data: { turbo: false,  controller: "tag", action: "click->tag#removeTag", tag_id_value: video[:public_id]} do %><% end %>
-      <% else %>
-        <%= link_to "", class: "add-tag-button nav-button", data: { turbo: false, controller: "tag", action: "click->tag#addTag", tag_id_value: video[:public_id]} do %><% end %>
+<div data-controller="tag">
+  <% @videos.each do |video| %>
+    <div class="video-card">
+      <% if user_signed_in? %>
+        <%= link_to "#", class: "delete-video-button nav-button", data: { turbo: false, action: "click->tag#destroyVideo", tag_id_value: video[:public_id]} do %><% end %>
+        <% if video[:is_favorite] %>
+          <%= link_to "", class: "remove-tag-button nav-button", data: { turbo: false, action: "click->tag#removeTag", tag_id_value: video[:public_id]} do %><% end %>
+        <% else %>
+          <%= link_to "", class: "add-tag-button nav-button", data: { turbo: false, action: "click->tag#addTag", tag_id_value: video[:public_id]} do %><% end %>
+        <% end %>
       <% end %>
-    <% end %>
-    <div class="video-container">
-      <video
-        id="my-video"
-        class="video-js  vjs-theme-sea"
-        controls
-        data-setup="{}">
-        <source src="<%= video[:url] %>" type="video/mp4">
-      </video>
+      <div class="video-container">
+        <video
+          id="my-video"
+          class="video-js  vjs-theme-sea"
+          controls
+          data-setup="{}">
+          <source src="<%= video[:url] %>" type="video/mp4">
+        </video>
+      </div>
+      <div class="bottom-video-card">
+        <p><%= video[:created_at].to_time.strftime("%d/%m/%Y %H:%M") %></p>
+      </div>
     </div>
-    <div class="bottom-video-card">
-      <p><%= video[:created_at].to_time.strftime("%d/%m/%Y %H:%M") %></p>
-    </div>
-  </div>
-<% end %>
+  <% end %>
+</div>
