@@ -1,5 +1,5 @@
 <% @videos.each do |video| %>
-  <div class="video-card">
+  <%# <div class="video-card"> %>
     <% if user_signed_in? %>
       <%= tag.button "destroy",
         type: "button",
@@ -24,5 +24,5 @@
     <div class="bottom-video-card">
       <p><%= video[:created_at].to_time.strftime("%d/%m/%Y %H:%M") %></p>
     </div>
-  </div>
+  <%# </div> %>
 <% end %>
