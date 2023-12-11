@@ -13,12 +13,11 @@
   </head>
   <body>
     <script src="https://unpkg.com/video.js/dist/video.js"></script>
-    <script>
-      var player = videojs('my-video');
-    </script>
     <%= render "shared/navbar" %>
     <%= render "shared/flashes" %>
     <%= yield %>
-
+    <script>
+      var player = videojs('my-video');
+    </script>
   </body>
 </html>
