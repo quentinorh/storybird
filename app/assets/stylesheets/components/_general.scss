@@ -44,6 +44,9 @@ h1 {
 
 .vjs-big-play-button {
   opacity: 0% !important;
+  height: 100% !important;
+  width: 100% !important;
+  position: sticky !important;
 }
 
 .vjs-fullscreen-control {
