@@ -1,7 +1,7 @@
 <% @videos.each do |video| %>
   <div class="video-card">
     <% if user_signed_in? %>
-      <%= tag.button "     ",
+      <%= tag.button "destroy",
         type: "button",
         class: "delete-video-button nav-button",
         data: { controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]}
