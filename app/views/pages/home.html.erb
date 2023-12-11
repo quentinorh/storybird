@@ -1,11 +1,11 @@
 <% @videos.each do |video| %>
   <div class="video-card">
     <% if user_signed_in? %>
-      <%= link_to "#", class: "delete-video-button nav-button", data: { controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]} do %><% end %>
+      <%= link_to "#", class: "delete-video-button nav-button", data: { turbo: false,  controller: "tag", action: "click->tag#destroyVideo", tag_id_value: video[:public_id]} do %><% end %>
       <% if video[:is_favorite] %>
         <%= link_to "", class: "remove-tag-button nav-button", data: { controller: "tag", action: "click->tag#removeTag", tag_id_value: video[:public_id]} do %><% end %>
       <% else %>
-        <%= link_to "", class: "add-tag-button nav-button", data: { controller: "tag", action: "click->tag#addTag", tag_id_value: video[:public_id]} do %><% end %>
+        <%= link_to "", class: "add-tag-button nav-button", data: { turbo: false, controller: "tag", action: "click->tag#addTag", tag_id_value: video[:public_id]} do %><% end %>
       <% end %>
     <% end %>
     <div class="video-container">
