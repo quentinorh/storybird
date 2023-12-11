@@ -43,7 +43,7 @@ h1 {
 }
 
 .vjs-big-play-button {
-  display: none !important;
+  opacity: 0% !important;
 }
 
 .vjs-fullscreen-control {
@@ -62,6 +62,8 @@ h1 {
   border-radius: 25px 25px 0px 0px;
   width: calc(60vh);
   height: calc(60vh);
+  max-width: 90vw;
+  max-height: 90vw;
   overflow: hidden;
 }
 
