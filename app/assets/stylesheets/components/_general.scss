@@ -59,6 +59,7 @@ h1 {
 }
 
 .video-container {
+  margin-top: 40px;
   border-radius: 25px 25px 0px 0px;
   width: calc(60vh);
   height: calc(60vh);
@@ -74,7 +75,6 @@ h1 {
   justify-content: center;
   align-items: center;
   background-color: rgba(255, 255, 255, 0.557);
-  margin-bottom: 40px;
   font-family: $headers-font !important;
   font-weight: bold;
   color: #4496A4;
