@@ -71,13 +71,46 @@ Une fois le déploiement terminé :
 - **Temps de réveil** : La première requête après la mise en veille peut prendre 30-60 secondes
 - **Limite de temps** : 750 heures/mois (suffisant pour un usage personnel)
 
+### Éviter la mise en veille (optionnel)
+
+Pour maintenir votre application active et éviter le délai de réveil, vous pouvez utiliser un service de ping automatique :
+
+**Services gratuits recommandés :**
+- **[UptimeRobot](https://uptimerobot.com/)** : Ping toutes les 5 minutes (gratuit jusqu'à 50 monitors)
+- **[Cron-job.org](https://cron-job.org/)** : Planification de tâches HTTP (gratuit)
+- **[Pingdom](https://www.pingdom.com/)** : Monitoring gratuit (limité)
+
+**Configuration avec UptimeRobot (exemple) :**
+1. Créez un compte gratuit sur UptimeRobot
+2. Ajoutez un nouveau monitor
+3. Type : HTTP(s)
+4. URL : `https://storybird.onrender.com`
+5. Intervalle : 5 minutes
+6. L'application restera active en permanence
+
 ### Mise à jour de l'application
 
-Pour mettre à jour l'application :
-1. Poussez vos changements sur GitHub
-2. Render détectera automatiquement les changements et redéploiera
+**Déploiement automatique (par défaut) :**
 
-Ou manuellement :
+✅ **Oui, Render redéploie automatiquement** à chaque push sur la branche configurée (généralement `main`).
+
+Pour mettre à jour l'application :
+1. Faites vos modifications en local
+2. Commitez et poussez sur GitHub :
+   ```bash
+   git add .
+   git commit -m "Description des changements"
+   git push origin main
+   ```
+3. Render détectera automatiquement le push et lancera un nouveau déploiement
+4. Vous pouvez suivre le déploiement dans le Dashboard Render (section "Events" ou "Logs")
+
+**Vérifier que l'auto-deploy est activé :**
+- Dans le Dashboard Render, allez dans votre service
+- Section **"Settings"** → **"Auto-Deploy"**
+- Assurez-vous que **"Auto-Deploy"** est activé (c'est généralement le cas par défaut)
+
+**Déploiement manuel (si nécessaire) :**
 1. Allez dans le Dashboard Render
 2. Cliquez sur **"Manual Deploy"** → **"Deploy latest commit"**
 

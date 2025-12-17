@@ -92,12 +92,13 @@ function createVideoCard(video) {
     // Échapper le public_id pour éviter les injections XSS
     const safePublicId = escapeHtml(video.public_id);
     const safeDate = escapeHtml(date);
+    const safeUrl = escapeHtml(video.url);
 
     return `
         <div class="video-card" data-public-id="${safePublicId}">
             <div class="video-wrapper">
-                <video controls>
-                    <source src="${escapeHtml(video.url)}" type="video/mp4">
+                <video controls preload="metadata">
+                    <source src="${safeUrl}" type="video/mp4">
                     Votre navigateur ne supporte pas la lecture de vidéos.
                 </video>
             </div>
@@ -105,12 +106,22 @@ function createVideoCard(video) {
                 <div class="video-date">${safeDate}</div>
                 <div class="video-actions">
                     <button class="btn btn-favorite ${video.is_favorite ? 'active' : ''}" 
-                            onclick="toggleFavorite('${safePublicId.replace(/'/g, "\\'")}')">
-                        ${video.is_favorite ? '❤️ Favori' : '🤍 Favori'}
+                            onclick="toggleFavorite('${safePublicId.replace(/'/g, "\\'")}')"
+                            title="${video.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+                        <span>${video.is_favorite ? '⭐' : '☆'}</span>
+                        <span>Favori</span>
+                    </button>
+                    <button class="btn btn-share" 
+                            onclick="shareVideo('${safeUrl.replace(/'/g, "\\'")}')"
+                            title="Partager la vidéo">
+                        <span>🔗</span>
+                        <span>Partager</span>
                     </button>
                     <button class="btn btn-delete" 
-                            onclick="deleteVideo('${safePublicId.replace(/'/g, "\\'")}')">
-                        🗑️ Supprimer
+                            onclick="deleteVideo('${safePublicId.replace(/'/g, "\\'")}')"
+                            title="Supprimer la vidéo">
+                        <span>🗑️</span>
+                        <span>Supprimer</span>
                     </button>
                 </div>
             </div>
@@ -139,9 +150,53 @@ async function toggleFavorite(publicId) {
         // Mettre à jour l'état local
         video.is_favorite = !isFavorite;
         displayVideos();
+        showToast(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris');
     } catch (err) {
         alert(`Erreur: ${err.message}`);
     }
+}
+
+async function shareVideo(videoUrl) {
+    try {
+        // Essayer d'utiliser l'API Web Share si disponible (mobile)
+        if (navigator.share) {
+            await navigator.share({
+                title: 'Vidéo Storybird',
+                text: 'Regardez cette vidéo !',
+                url: videoUrl
+            });
+            return;
+        }
+
+        // Sinon, copier l'URL dans le presse-papier
+        await navigator.clipboard.writeText(videoUrl);
+        showToast('URL copiée dans le presse-papier !');
+    } catch (err) {
+        // Si l'utilisateur annule le partage, ne rien faire
+        if (err.name === 'AbortError') {
+            return;
+        }
+        
+        // Fallback : copier dans le presse-papier
+        try {
+            await navigator.clipboard.writeText(videoUrl);
+            showToast('URL copiée dans le presse-papier !');
+        } catch (clipboardErr) {
+            // Fallback final : afficher l'URL dans une alerte
+            prompt('Copiez cette URL :', videoUrl);
+        }
+    }
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    const toastMessage = toast.querySelector('.toast-message');
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
 }
 
 async function deleteVideo(publicId) {
@@ -163,6 +218,7 @@ async function deleteVideo(publicId) {
         // Retirer la vidéo de la liste
         allVideos = allVideos.filter(v => v.public_id !== publicId);
         displayVideos();
+        showToast('Vidéo supprimée avec succès');
     } catch (err) {
         alert(`Erreur: ${err.message}`);
     }

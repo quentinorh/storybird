@@ -3,27 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storybird - Gestionnaire de Vidéos</title>
+    <title>Storybird - Mangeoire Connectée</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎬 Storybird</h1>
+            <h1>Storybird</h1>
             <div class="filters">
-                <button id="btn-all" class="filter-btn active">Toutes les vidéos</button>
-                <button id="btn-favorites" class="filter-btn">Favoris</button>
+                <button id="btn-all" class="filter-btn active">
+                    <span>Toutes les vidéos</span>
+                </button>
+                <button id="btn-favorites" class="filter-btn">
+                    <span>Favoris</span>
+                </button>
             </div>
         </header>
 
         <main>
-            <div id="loading" class="loading">Chargement des vidéos...</div>
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Chargement des vidéos...</p>
+            </div>
             <div id="error" class="error" style="display: none;"></div>
             <div id="videos-container" class="videos-container"></div>
             <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">🐦</div>
                 <p>Aucune vidéo trouvée</p>
+                <p style="font-size: 14px; margin-top: 8px; opacity: 0.7;">Les oiseaux vont bientôt arriver !</p>
             </div>
         </main>
+    </div>
+
+    <!-- Toast notification pour la copie -->
+    <div id="toast" class="toast">
+        <span class="toast-icon">✓</span>
+        <span class="toast-message">URL copiée dans le presse-papier !</span>
     </div>
 
     <script src="script.js"></script>
