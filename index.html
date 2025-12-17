@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storybird - Gestionnaire de Vidéos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Storybird</h1>
+            <div class="filters">
+                <button id="btn-all" class="filter-btn active">Toutes les vidéos</button>
+                <button id="btn-favorites" class="filter-btn">Favoris</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="loading" class="loading">Chargement des vidéos...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="videos-container" class="videos-container"></div>
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <p>Aucune vidéo trouvée</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

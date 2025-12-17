@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: storybird
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: CLOUDINARY_PREFIX
+        value: storybird1/
+        required: false
+      - key: ALLOWED_ORIGIN
+        value: https://storybird.onrender.com
+        required: false
+
