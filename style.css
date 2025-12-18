@@ -50,7 +50,7 @@ header {
 header h1 {
     font-size: 3em;
     font-weight: 800;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
     color: var(--text-dark);
     letter-spacing: -0.02em;
 }
