@@ -109,26 +109,25 @@ function createVideoCard(video) {
                 </video>
             </div>
             <div class="video-info">
-                <div class="video-date">${safeDate} - ${safeTime}</div>
-                <div class="video-actions">
-                    <button class="btn btn-favorite ${video.is_favorite ? 'active' : ''}" 
-                            onclick="toggleFavorite('${safePublicId.replace(/'/g, "\\'")}')"
-                            title="${video.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
-                        <span>${video.is_favorite ? '⭐' : '☆'}</span>
-                        <span>Favori</span>
-                    </button>
-                    <button class="btn btn-share" 
-                            onclick="shareVideo('${safeUrl.replace(/'/g, "\\'")}')"
-                            title="Partager la vidéo">
-                        <span>🔗</span>
-                        <span>Partager</span>
-                    </button>
-                    <button class="btn btn-delete" 
-                            onclick="deleteVideo('${safePublicId.replace(/'/g, "\\'")}')"
-                            title="Supprimer la vidéo">
-                        <span>🗑️</span>
-                        <span>Supprimer</span>
-                    </button>
+                <div class="video-date-container">
+                    <div class="video-date">${safeDate} - ${safeTime}</div>
+                    <div class="video-actions">
+                        <button class="btn btn-favorite ${video.is_favorite ? 'active' : ''}" 
+                                onclick="toggleFavorite('${safePublicId.replace(/'/g, "\\'")}')"
+                                title="${video.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+                            <span>${video.is_favorite ? '⭐' : '☆'}</span>
+                        </button>
+                        <button class="btn btn-share" 
+                                onclick="shareVideo('${safeUrl.replace(/'/g, "\\'")}')"
+                                title="Partager la vidéo">
+                            <span>🔗</span>
+                        </button>
+                        <button class="btn btn-delete" 
+                                onclick="deleteVideo('${safePublicId.replace(/'/g, "\\'")}')"
+                                title="Déplacer dans la corbeille">
+                            <span>🗑️</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -206,7 +205,7 @@ function showToast(message) {
 }
 
 async function deleteVideo(publicId) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette vidéo ?')) {
+    if (!confirm('Êtes-vous sûr de vouloir déplacer cette vidéo dans la corbeille ?')) {
         return;
     }
 
@@ -218,13 +217,13 @@ async function deleteVideo(publicId) {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
-            throw new Error(errorData.error || 'Erreur lors de la suppression');
+            throw new Error(errorData.error || 'Erreur lors du déplacement');
         }
 
         // Retirer la vidéo de la liste
         allVideos = allVideos.filter(v => v.public_id !== publicId);
         displayVideos();
-        showToast('Vidéo supprimée avec succès');
+        showToast('Vidéo déplacée dans la corbeille');
     } catch (err) {
         alert(`Erreur: ${err.message}`);
     }

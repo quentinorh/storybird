@@ -265,14 +265,21 @@ main {
     padding: 20px;
 }
 
+.video-date-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
 .video-date {
     color: var(--text-light);
     font-size: 13px;
-    margin-bottom: 16px;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
 }
 
 .video-date::before {
@@ -281,30 +288,30 @@ main {
 }
 
 .video-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    display: flex;
     gap: 8px;
-    margin-top: 12px;
+    align-items: center;
 }
 
 .btn {
-    padding: 10px 14px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     border: none;
-    border-radius: 12px;
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
-.btn span:first-child {
-    font-size: 16px;
+.btn span {
+    font-size: 18px;
+    line-height: 1;
 }
 
 .btn-favorite {
@@ -431,17 +438,16 @@ main {
     }
 
     .video-actions {
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 8px;
+        gap: 6px;
     }
 
     .btn {
-        padding: 10px 12px;
-        font-size: 12px;
+        width: 32px;
+        height: 32px;
     }
 
-    .btn span:first-child {
-        font-size: 14px;
+    .btn span {
+        font-size: 16px;
     }
 
     .toast {
@@ -453,12 +459,20 @@ main {
 }
 
 @media (max-width: 480px) {
+    .video-date-container {
+        flex-wrap: wrap;
+    }
+
     .video-actions {
-        grid-template-columns: 1fr;
+        gap: 6px;
     }
 
     .btn {
-        width: 100%;
-        padding: 12px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .btn span {
+        font-size: 16px;
     }
 }

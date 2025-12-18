@@ -73,6 +73,7 @@ cloudinary.config(cloudinaryConfig);
 
 const PREFIX = process.env.CLOUDINARY_PREFIX || 'storybird1/';
 const FAVORITE_TAG = 'favoris';
+const TRASH_FOLDER = 'corbeille';
 
 // Fonction de validation pour s'assurer que le public_id appartient au préfixe
 function validatePublicId(publicId) {
@@ -88,6 +89,9 @@ function validatePublicId(publicId) {
 // Route pour récupérer toutes les vidéos
 app.get('/api/videos', async (req, res) => {
     try {
+        const normalizedPrefix = PREFIX.endsWith('/') ? PREFIX.slice(0, -1) : PREFIX;
+        const trashPrefix = `${normalizedPrefix}/${TRASH_FOLDER}/`;
+        
         const result = await cloudinary.api.resources({
             resource_type: 'video',
             type: 'upload',
@@ -95,12 +99,15 @@ app.get('/api/videos', async (req, res) => {
             tags: true
         });
 
-        const videos = result.resources.map(video => ({
-            url: video.url,
-            created_at: video.created_at,
-            public_id: video.public_id,
-            is_favorite: video.tags && video.tags.includes(FAVORITE_TAG)
-        })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        // Filtrer les vidéos dans la corbeille
+        const videos = result.resources
+            .filter(video => !video.public_id.startsWith(trashPrefix))
+            .map(video => ({
+                url: video.url,
+                created_at: video.created_at,
+                public_id: video.public_id,
+                is_favorite: video.tags && video.tags.includes(FAVORITE_TAG)
+            })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         res.json(videos);
     } catch (error) {
@@ -148,7 +155,7 @@ app.delete('/api/videos/:publicId/favorite', async (req, res) => {
     }
 });
 
-// Route pour supprimer une vidéo
+// Route pour déplacer une vidéo dans la corbeille
 app.delete('/api/videos/:publicId', async (req, res) => {
     try {
         const publicId = decodeURIComponent(req.params.publicId);
@@ -158,13 +165,28 @@ app.delete('/api/videos/:publicId', async (req, res) => {
             return res.status(403).json({ error: 'Accès non autorisé à cette ressource' });
         }
         
-        await cloudinary.uploader.destroy(publicId, {
+        // Vérifier que la vidéo n'est pas déjà dans la corbeille
+        const normalizedPrefix = PREFIX.endsWith('/') ? PREFIX.slice(0, -1) : PREFIX;
+        const trashPrefix = `${normalizedPrefix}/${TRASH_FOLDER}/`;
+        if (publicId.startsWith(trashPrefix)) {
+            return res.status(400).json({ error: 'La vidéo est déjà dans la corbeille' });
+        }
+        
+        // Construire le nouveau public_id dans la corbeille
+        // Exemple: storybird1/video123 -> storybird1/corbeille/video123
+        const pathParts = publicId.split('/');
+        const fileName = pathParts[pathParts.length - 1];
+        const newPublicId = `${normalizedPrefix}/${TRASH_FOLDER}/${fileName}`;
+        
+        // Déplacer la vidéo dans la corbeille
+        await cloudinary.uploader.rename(publicId, newPublicId, {
             resource_type: 'video'
         });
+        
         res.json({ success: true });
     } catch (error) {
-        console.error('Erreur lors de la suppression de la vidéo:', error.message);
-        res.status(500).json({ error: error.message || 'Erreur lors de la suppression de la vidéo' });
+        console.error('Erreur lors du déplacement de la vidéo:', error.message);
+        res.status(500).json({ error: error.message || 'Erreur lors du déplacement de la vidéo' });
     }
 });
 
