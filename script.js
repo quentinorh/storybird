@@ -83,15 +83,21 @@ function escapeHtml(text) {
 }
 
 function createVideoCard(video) {
-    const date = new Date(video.created_at).toLocaleDateString('fr-FR', {
+    const dateObj = new Date(video.created_at);
+    const date = dateObj.toLocaleDateString('fr-FR', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
+    });
+    const time = dateObj.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
     });
 
     // Échapper le public_id pour éviter les injections XSS
     const safePublicId = escapeHtml(video.public_id);
     const safeDate = escapeHtml(date);
+    const safeTime = escapeHtml(time);
     const safeUrl = escapeHtml(video.url);
 
     return `
@@ -103,7 +109,7 @@ function createVideoCard(video) {
                 </video>
             </div>
             <div class="video-info">
-                <div class="video-date">${safeDate}</div>
+                <div class="video-date">${safeDate} - ${safeTime}</div>
                 <div class="video-actions">
                     <button class="btn btn-favorite ${video.is_favorite ? 'active' : ''}" 
                             onclick="toggleFavorite('${safePublicId.replace(/'/g, "\\'")}')"
