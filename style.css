@@ -22,7 +22,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--bg-light);
+    background: var(--bg-light) url('pattern.png') repeat;
     min-height: 100vh;
     padding: 20px;
     color: var(--text-dark);
@@ -43,9 +43,17 @@ header {
     text-align: center;
 }
 
-.header-emoji {
-    font-size: 4em;
-    margin-bottom: 0px;
+.header-logo {
+    margin-bottom: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-img {
+    height: 300px;
+    width: auto;
+    object-fit: contain;
 }
 
 header h1 {
@@ -167,9 +175,17 @@ main {
 }
 
 .empty-icon {
-    font-size: 80px;
     margin-bottom: 20px;
     opacity: 0.6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-logo-img {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
 }
 
 .empty-state p {
@@ -573,8 +589,12 @@ main {
         padding: 30px 20px;
     }
 
-    .header-emoji {
-        font-size: 3em;
+    .logo-img {
+        height: 60px;
+    }
+
+    .empty-logo-img {
+        height: 60px;
     }
     
     header h1 {
