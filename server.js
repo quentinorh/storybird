@@ -104,13 +104,13 @@ app.get('/api/videos', async (req, res) => {
         const videos = result.resources
             .filter(video => !video.public_id.startsWith(trashPrefix))
             .map(video => ({
-                url: video.url,
-                created_at: video.created_at,
-                public_id: video.public_id,
+            url: video.url,
+            created_at: video.created_at,
+            public_id: video.public_id,
                 is_favorite: video.tags && video.tags.includes(FAVORITE_TAG),
                 title: video.context && video.context.custom && video.context.custom.title ? video.context.custom.title : null,
                 description: video.context && video.context.custom && video.context.custom.description ? video.context.custom.description : null
-            })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         res.json(videos);
     } catch (error) {

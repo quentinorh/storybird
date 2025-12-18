@@ -186,6 +186,10 @@ function setupEventListeners() {
         updateFilterButtons();
         displayVideos();
     });
+
+    document.getElementById('btn-info').addEventListener('click', () => {
+        showInfoModal();
+    });
 }
 
 function updateFilterButtons() {
@@ -379,6 +383,32 @@ function showToast(message) {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
+}
+
+function showInfoModal() {
+    const modal = document.getElementById('modal-info');
+    const okBtn = document.getElementById('modal-info-ok');
+
+    modal.classList.add('show');
+
+    const cleanup = () => {
+        modal.classList.remove('show');
+        okBtn.removeEventListener('click', handleOk);
+        modal.removeEventListener('click', handleOverlayClick);
+    };
+
+    const handleOk = () => {
+        cleanup();
+    };
+
+    const handleOverlayClick = (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            handleOk();
+        }
+    };
+
+    okBtn.addEventListener('click', handleOk);
+    modal.addEventListener('click', handleOverlayClick);
 }
 
 function showEditLoading(show) {
