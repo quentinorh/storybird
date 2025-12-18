@@ -42,6 +42,61 @@
         <span class="toast-message">URL copiée dans le presse-papier !</span>
     </div>
 
+    <!-- Modale de confirmation -->
+    <div id="modal-confirm" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirmation</h2>
+            </div>
+            <div class="modal-body">
+                <p id="modal-confirm-message"></p>
+                <div id="modal-confirm-loading" class="modal-loading" style="display: none;">
+                    <div class="modal-spinner"></div>
+                    <p>Suppression en cours...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-confirm-cancel" class="modal-btn modal-btn-cancel">Annuler</button>
+                <button id="modal-confirm-ok" class="modal-btn modal-btn-primary">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale d'alerte -->
+    <div id="modal-alert" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Information</h2>
+            </div>
+            <div class="modal-body">
+                <p id="modal-alert-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-alert-ok" class="modal-btn modal-btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale de prompt -->
+    <div id="modal-prompt" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Information</h2>
+            </div>
+            <div class="modal-body">
+                <p id="modal-prompt-message"></p>
+                <input type="text" id="modal-prompt-input" class="modal-input" />
+            </div>
+            <div class="modal-footer">
+                <button id="modal-prompt-cancel" class="modal-btn modal-btn-cancel">Annuler</button>
+                <button id="modal-prompt-ok" class="modal-btn modal-btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

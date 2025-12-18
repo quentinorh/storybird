@@ -6,6 +6,168 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 let currentFilter = 'all';
 let allVideos = [];
 
+// Fonctions pour les modales personnalisées
+function showConfirm(message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('modal-confirm');
+        const messageEl = document.getElementById('modal-confirm-message');
+        const loadingEl = document.getElementById('modal-confirm-loading');
+        const okBtn = document.getElementById('modal-confirm-ok');
+        const cancelBtn = document.getElementById('modal-confirm-cancel');
+
+        messageEl.textContent = message;
+        loadingEl.style.display = 'none';
+        okBtn.disabled = false;
+        cancelBtn.disabled = false;
+        modal.classList.add('show');
+
+        const cleanup = () => {
+            modal.classList.remove('show');
+            loadingEl.style.display = 'none';
+            okBtn.disabled = false;
+            cancelBtn.disabled = false;
+            okBtn.removeEventListener('click', handleOk);
+            cancelBtn.removeEventListener('click', handleCancel);
+            modal.removeEventListener('click', handleOverlayClick);
+        };
+
+        const handleOk = () => {
+            resolve(true);
+        };
+
+        const handleCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+
+        const handleOverlayClick = (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                handleCancel();
+            }
+        };
+
+        okBtn.addEventListener('click', handleOk);
+        cancelBtn.addEventListener('click', handleCancel);
+        modal.addEventListener('click', handleOverlayClick);
+    });
+}
+
+function showConfirmLoading(show) {
+    const modal = document.getElementById('modal-confirm');
+    const loadingEl = document.getElementById('modal-confirm-loading');
+    const messageEl = document.getElementById('modal-confirm-message');
+    const okBtn = document.getElementById('modal-confirm-ok');
+    const cancelBtn = document.getElementById('modal-confirm-cancel');
+
+    if (show) {
+        loadingEl.style.display = 'flex';
+        messageEl.style.display = 'none';
+        okBtn.disabled = true;
+        cancelBtn.disabled = true;
+    } else {
+        loadingEl.style.display = 'none';
+        messageEl.style.display = 'block';
+        okBtn.disabled = false;
+        cancelBtn.disabled = false;
+    }
+}
+
+function closeConfirm() {
+    const modal = document.getElementById('modal-confirm');
+    const loadingEl = document.getElementById('modal-confirm-loading');
+    const messageEl = document.getElementById('modal-confirm-message');
+    const okBtn = document.getElementById('modal-confirm-ok');
+    const cancelBtn = document.getElementById('modal-confirm-cancel');
+    
+    modal.classList.remove('show');
+    loadingEl.style.display = 'none';
+    messageEl.style.display = 'block';
+    okBtn.disabled = false;
+    cancelBtn.disabled = false;
+}
+
+function showAlert(message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('modal-alert');
+        const messageEl = document.getElementById('modal-alert-message');
+        const okBtn = document.getElementById('modal-alert-ok');
+
+        messageEl.textContent = message;
+        modal.classList.add('show');
+
+        const cleanup = () => {
+            modal.classList.remove('show');
+            okBtn.removeEventListener('click', handleOk);
+            modal.removeEventListener('click', handleOverlayClick);
+        };
+
+        const handleOk = () => {
+            cleanup();
+            resolve();
+        };
+
+        const handleOverlayClick = (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                handleOk();
+            }
+        };
+
+        okBtn.addEventListener('click', handleOk);
+        modal.addEventListener('click', handleOverlayClick);
+    });
+}
+
+function showPrompt(message, defaultValue = '') {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('modal-prompt');
+        const messageEl = document.getElementById('modal-prompt-message');
+        const inputEl = document.getElementById('modal-prompt-input');
+        const okBtn = document.getElementById('modal-prompt-ok');
+        const cancelBtn = document.getElementById('modal-prompt-cancel');
+
+        messageEl.textContent = message;
+        inputEl.value = defaultValue;
+        modal.classList.add('show');
+        inputEl.focus();
+        inputEl.select();
+
+        const cleanup = () => {
+            modal.classList.remove('show');
+            okBtn.removeEventListener('click', handleOk);
+            cancelBtn.removeEventListener('click', handleCancel);
+            modal.removeEventListener('click', handleOverlayClick);
+            inputEl.removeEventListener('keypress', handleKeyPress);
+        };
+
+        const handleOk = () => {
+            cleanup();
+            resolve(inputEl.value);
+        };
+
+        const handleCancel = () => {
+            cleanup();
+            resolve(null);
+        };
+
+        const handleKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                handleOk();
+            }
+        };
+
+        const handleOverlayClick = (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                handleCancel();
+            }
+        };
+
+        okBtn.addEventListener('click', handleOk);
+        cancelBtn.addEventListener('click', handleCancel);
+        inputEl.addEventListener('keypress', handleKeyPress);
+        modal.addEventListener('click', handleOverlayClick);
+    });
+}
+
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
@@ -157,7 +319,7 @@ async function toggleFavorite(publicId) {
         displayVideos();
         showToast(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris');
     } catch (err) {
-        alert(`Erreur: ${err.message}`);
+        await showAlert(`Erreur: ${err.message}`);
     }
 }
 
@@ -187,8 +349,8 @@ async function shareVideo(videoUrl) {
             await navigator.clipboard.writeText(videoUrl);
             showToast('URL copiée dans le presse-papier !');
         } catch (clipboardErr) {
-            // Fallback final : afficher l'URL dans une alerte
-            prompt('Copiez cette URL :', videoUrl);
+            // Fallback final : afficher l'URL dans une modale
+            await showPrompt('Copiez cette URL :', videoUrl);
         }
     }
 }
@@ -205,9 +367,13 @@ function showToast(message) {
 }
 
 async function deleteVideo(publicId) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette vidéo ?')) {
+    const confirmed = await showConfirm('Êtes-vous sûr de vouloir supprimer cette vidéo ?');
+    if (!confirmed) {
         return;
     }
+
+    // Afficher le chargement
+    showConfirmLoading(true);
 
     try {
         const encodedPublicId = encodeURIComponent(publicId);
@@ -220,12 +386,17 @@ async function deleteVideo(publicId) {
             throw new Error(errorData.error || 'Erreur lors de la suppression');
         }
 
+        // Fermer la modale
+        closeConfirm();
+
         // Retirer la vidéo de la liste
         allVideos = allVideos.filter(v => v.public_id !== publicId);
         displayVideos();
         showToast('La vidéo a bien été supprimée');
     } catch (err) {
-        alert(`Erreur: ${err.message}`);
+        // Masquer le chargement et fermer la modale de confirmation
+        closeConfirm();
+        await showAlert(`Erreur: ${err.message}`);
     }
 }
 
