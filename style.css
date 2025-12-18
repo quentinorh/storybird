@@ -578,23 +578,24 @@ main {
 @media (max-width: 768px) {
     body {
         padding: 15px;
+        background-size: 150%;
     }
 
     .videos-container {
         grid-template-columns: 1fr;
         gap: 20px;
     }
-    
+
     header {
         padding: 30px 20px;
     }
 
     .logo-img {
-        height: 60px;
+        height: 300px;
     }
 
     .empty-logo-img {
-        height: 60px;
+        height: 200px;
     }
     
     header h1 {
@@ -646,6 +647,14 @@ main {
 }
 
 @media (max-width: 480px) {
+    body {
+        background-size: 120% 120%;
+    }
+
+    .logo-img {
+        height: 200px;
+    }
+
     .video-date-container {
         flex-wrap: wrap;
     }
