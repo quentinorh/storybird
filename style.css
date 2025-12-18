@@ -34,40 +34,32 @@ body {
 }
 
 header {
-    background: var(--bg-white);
-    border-radius: 24px;
     padding: 40px;
     margin-bottom: 30px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.header-emoji {
+    font-size: 4em;
+    margin-bottom: 0px;
 }
 
 header h1 {
     font-size: 3em;
     font-weight: 800;
     margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
     color: var(--text-dark);
     letter-spacing: -0.02em;
-}
-
-header h1::before {
-    content: '🐦';
-    font-size: 0.9em;
-    animation: bounce 2s ease-in-out infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
 }
 
 .filters {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .filter-btn {
@@ -114,11 +106,6 @@ header h1::before {
 }
 
 main {
-    background: var(--bg-white);
-    border-radius: 24px;
-    padding: 40px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-light);
     min-height: 400px;
 }
 
@@ -420,13 +407,13 @@ main {
     header {
         padding: 30px 20px;
     }
+
+    .header-emoji {
+        font-size: 3em;
+    }
     
     header h1 {
         font-size: 2.2em;
-    }
-
-    main {
-        padding: 30px 20px;
     }
 
     .video-actions {
