@@ -213,9 +213,24 @@ main {
 }
 
 .videos-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
+    column-count: 3;
+    column-gap: 24px;
+    max-width: calc(3 * 320px + 2 * 24px);
+    margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+    .videos-container {
+        column-count: 2;
+        max-width: calc(2 * 320px + 1 * 24px);
+    }
+}
+
+@media (max-width: 768px) {
+    .videos-container {
+        column-count: 1;
+        max-width: 100%;
+    }
 }
 
 .video-card {
@@ -226,6 +241,10 @@ main {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid var(--border-light);
     position: relative;
+    break-inside: avoid;
+    margin-bottom: 24px;
+    display: inline-block;
+    width: 100%;
 }
 
 .video-card::before {
@@ -299,17 +318,18 @@ main {
     color: var(--text-light);
     font-size: 13px;
     font-weight: 500;
+    line-height: 1.2;
 }
 
 .video-time {
     color: var(--text-light);
     font-size: 13px;
     font-weight: 500;
+    line-height: 1.2;
 }
 
 .video-metadata {
     margin-top: 12px;
-    padding-top: 12px;
 }
 
 .video-title {
@@ -675,8 +695,8 @@ main {
     }
 
     .videos-container {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        column-count: 1;
+        max-width: 100%;
     }
 
     header {

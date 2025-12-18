@@ -246,11 +246,10 @@ function escapeHtml(text) {
 
 function createVideoCard(video) {
     const dateObj = new Date(video.created_at);
-    const date = dateObj.toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    const date = `${day}/${month}/${year}`;
     const time = dateObj.toLocaleTimeString('fr-FR', {
         hour: '2-digit',
         minute: '2-digit'
