@@ -261,6 +261,8 @@ function createVideoCard(video) {
     const safeDate = escapeHtml(date);
     const safeTime = escapeHtml(time);
     const safeUrl = escapeHtml(video.url);
+    const safeTitle = video.title ? escapeHtml(video.title) : '';
+    const safeDescription = video.description ? escapeHtml(video.description) : '';
 
     return `
         <div class="video-card" data-public-id="${safePublicId}">
@@ -272,12 +274,20 @@ function createVideoCard(video) {
             </div>
             <div class="video-info">
                 <div class="video-date-container">
-                    <div class="video-date">${safeDate} - ${safeTime}</div>
+                    <div class="video-date-wrapper">
+                        <div class="video-date">${safeDate}</div>
+                        <div class="video-time">${safeTime}</div>
+                    </div>
                     <div class="video-actions">
                         <button class="btn btn-favorite ${video.is_favorite ? 'active' : ''}" 
                                 onclick="toggleFavorite('${safePublicId.replace(/'/g, "\\'")}')"
                                 title="${video.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
                             <img src="fav.svg" alt="Favoris" class="btn-icon">
+                        </button>
+                        <button class="btn btn-edit" 
+                                onclick="editVideo('${safePublicId.replace(/'/g, "\\'")}')"
+                                title="Modifier le titre et la description">
+                            <img src="edit.svg" alt="Modifier" class="btn-icon">
                         </button>
                         <button class="btn btn-share" 
                                 onclick="shareVideo('${safeUrl.replace(/'/g, "\\'")}')"
@@ -291,6 +301,12 @@ function createVideoCard(video) {
                         </button>
                     </div>
                 </div>
+                ${safeTitle || safeDescription ? `
+                <div class="video-metadata">
+                    ${safeTitle ? `<div class="video-title">${safeTitle}</div>` : ''}
+                    ${safeDescription ? `<div class="video-description">${safeDescription}</div>` : ''}
+                </div>
+                ` : ''}
             </div>
         </div>
     `;
@@ -364,6 +380,139 @@ function showToast(message) {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
+}
+
+function showEditLoading(show) {
+    const modal = document.getElementById('modal-edit');
+    const loadingEl = document.getElementById('modal-edit-loading');
+    const titleInput = document.getElementById('modal-edit-title');
+    const descriptionInput = document.getElementById('modal-edit-description');
+    const titleLabel = titleInput.previousElementSibling;
+    const descriptionLabel = descriptionInput.previousElementSibling;
+    const okBtn = document.getElementById('modal-edit-ok');
+    const cancelBtn = document.getElementById('modal-edit-cancel');
+
+    if (show) {
+        loadingEl.style.display = 'flex';
+        titleInput.style.display = 'none';
+        descriptionInput.style.display = 'none';
+        titleLabel.style.display = 'none';
+        descriptionLabel.style.display = 'none';
+        okBtn.disabled = true;
+        cancelBtn.disabled = true;
+    } else {
+        loadingEl.style.display = 'none';
+        titleInput.style.display = 'block';
+        descriptionInput.style.display = 'block';
+        titleLabel.style.display = 'block';
+        descriptionLabel.style.display = 'block';
+        okBtn.disabled = false;
+        cancelBtn.disabled = false;
+    }
+}
+
+function closeEdit() {
+    const modal = document.getElementById('modal-edit');
+    const loadingEl = document.getElementById('modal-edit-loading');
+    const titleInput = document.getElementById('modal-edit-title');
+    const descriptionInput = document.getElementById('modal-edit-description');
+    const titleLabel = titleInput.previousElementSibling;
+    const descriptionLabel = descriptionInput.previousElementSibling;
+    const okBtn = document.getElementById('modal-edit-ok');
+    const cancelBtn = document.getElementById('modal-edit-cancel');
+    
+    modal.classList.remove('show');
+    loadingEl.style.display = 'none';
+    titleInput.style.display = 'block';
+    descriptionInput.style.display = 'block';
+    titleLabel.style.display = 'block';
+    descriptionLabel.style.display = 'block';
+    okBtn.disabled = false;
+    cancelBtn.disabled = false;
+}
+
+async function editVideo(publicId) {
+    const video = allVideos.find(v => v.public_id === publicId);
+    if (!video) return;
+
+    const modal = document.getElementById('modal-edit');
+    const titleInput = document.getElementById('modal-edit-title');
+    const descriptionInput = document.getElementById('modal-edit-description');
+    const okBtn = document.getElementById('modal-edit-ok');
+    const cancelBtn = document.getElementById('modal-edit-cancel');
+
+    // Remplir les champs avec les valeurs actuelles
+    titleInput.value = video.title || '';
+    descriptionInput.value = video.description || '';
+    showEditLoading(false);
+    modal.classList.add('show');
+    titleInput.focus();
+
+    return new Promise((resolve) => {
+        const cleanup = () => {
+            closeEdit();
+            okBtn.removeEventListener('click', handleOk);
+            cancelBtn.removeEventListener('click', handleCancel);
+            modal.removeEventListener('click', handleOverlayClick);
+        };
+
+        const handleOk = async () => {
+            const title = titleInput.value.trim();
+            const description = descriptionInput.value.trim();
+
+            // Afficher le chargement
+            showEditLoading(true);
+
+            try {
+                const encodedPublicId = encodeURIComponent(publicId);
+                const response = await fetch(`${API_BASE_URL}/videos/${encodedPublicId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title || null,
+                        description: description || null
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+                    throw new Error(errorData.error || 'Erreur lors de la modification');
+                }
+
+                // Fermer la modale
+                cleanup();
+
+                // Mettre à jour l'état local
+                video.title = title || null;
+                video.description = description || null;
+                displayVideos();
+                showToast('Vidéo éditée avec succès');
+                resolve(true);
+            } catch (err) {
+                // Masquer le chargement et fermer la modale
+                cleanup();
+                await showAlert(`Erreur: ${err.message}`);
+                resolve(false);
+            }
+        };
+
+        const handleCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+
+        const handleOverlayClick = (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                handleCancel();
+            }
+        };
+
+        okBtn.addEventListener('click', handleOk);
+        cancelBtn.addEventListener('click', handleCancel);
+        modal.addEventListener('click', handleOverlayClick);
+    });
 }
 
 async function deleteVideo(publicId) {

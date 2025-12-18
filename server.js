@@ -96,7 +96,8 @@ app.get('/api/videos', async (req, res) => {
             resource_type: 'video',
             type: 'upload',
             prefix: PREFIX,
-            tags: true
+            tags: true,
+            context: true
         });
 
         // Filtrer les vidéos dans la corbeille
@@ -106,7 +107,9 @@ app.get('/api/videos', async (req, res) => {
                 url: video.url,
                 created_at: video.created_at,
                 public_id: video.public_id,
-                is_favorite: video.tags && video.tags.includes(FAVORITE_TAG)
+                is_favorite: video.tags && video.tags.includes(FAVORITE_TAG),
+                title: video.context && video.context.custom && video.context.custom.title ? video.context.custom.title : null,
+                description: video.context && video.context.custom && video.context.custom.description ? video.context.custom.description : null
             })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         res.json(videos);
@@ -152,6 +155,37 @@ app.delete('/api/videos/:publicId/favorite', async (req, res) => {
     } catch (error) {
         console.error('Erreur lors de la suppression du favori:', error.message);
         res.status(500).json({ error: error.message || 'Erreur lors de la suppression du favori' });
+    }
+});
+
+// Route pour mettre à jour les métadonnées d'une vidéo (titre et description)
+app.put('/api/videos/:publicId', async (req, res) => {
+    try {
+        const publicId = decodeURIComponent(req.params.publicId);
+        
+        // Validation de sécurité
+        if (!validatePublicId(publicId)) {
+            return res.status(403).json({ error: 'Accès non autorisé à cette ressource' });
+        }
+
+        const { title, description } = req.body;
+
+        // Construire le contexte pour Cloudinary
+        // On doit toujours inclure les clés, même si elles sont vides, pour pouvoir les supprimer
+        const context = {
+            title: title !== undefined && title !== null ? title : '',
+            description: description !== undefined && description !== null ? description : ''
+        };
+
+        // Mettre à jour le contexte de la vidéo
+        await cloudinary.uploader.add_context(context, [publicId], {
+            resource_type: 'video'
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de la vidéo:', error.message);
+        res.status(500).json({ error: error.message || 'Erreur lors de la mise à jour de la vidéo' });
     }
 });
 

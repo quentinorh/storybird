@@ -97,6 +97,30 @@
         </div>
     </div>
 
+    <!-- Modale d'édition -->
+    <div id="modal-edit" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Éditer la vidéo</h2>
+            </div>
+            <div class="modal-body">
+                <label for="modal-edit-title" class="modal-label">Titre</label>
+                <input type="text" id="modal-edit-title" class="modal-input" placeholder="Titre de la vidéo" />
+                <label for="modal-edit-description" class="modal-label">Description</label>
+                <textarea id="modal-edit-description" class="modal-textarea" placeholder="Description de la vidéo" rows="4"></textarea>
+                <div id="modal-edit-loading" class="modal-loading" style="display: none;">
+                    <div class="modal-spinner"></div>
+                    <p>Enregistrement en cours...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-edit-cancel" class="modal-btn modal-btn-cancel">Annuler</button>
+                <button id="modal-edit-ok" class="modal-btn modal-btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
