@@ -115,17 +115,17 @@ function createVideoCard(video) {
                         <button class="btn btn-favorite ${video.is_favorite ? 'active' : ''}" 
                                 onclick="toggleFavorite('${safePublicId.replace(/'/g, "\\'")}')"
                                 title="${video.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
-                            <span>${video.is_favorite ? '⭐' : '☆'}</span>
+                            <img src="fav.svg" alt="Favoris" class="btn-icon">
                         </button>
                         <button class="btn btn-share" 
                                 onclick="shareVideo('${safeUrl.replace(/'/g, "\\'")}')"
                                 title="Partager la vidéo">
-                            <span>🔗</span>
+                            <img src="share.svg" alt="Partager" class="btn-icon">
                         </button>
                         <button class="btn btn-delete" 
                                 onclick="deleteVideo('${safePublicId.replace(/'/g, "\\'")}')"
-                                title="Déplacer dans la corbeille">
-                            <span>🗑️</span>
+                                title="Supprimer la vidéo">
+                            <img src="del.svg" alt="Supprimer" class="btn-icon">
                         </button>
                     </div>
                 </div>
@@ -205,7 +205,7 @@ function showToast(message) {
 }
 
 async function deleteVideo(publicId) {
-    if (!confirm('Êtes-vous sûr de vouloir déplacer cette vidéo dans la corbeille ?')) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette vidéo ?')) {
         return;
     }
 
@@ -217,13 +217,13 @@ async function deleteVideo(publicId) {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
-            throw new Error(errorData.error || 'Erreur lors du déplacement');
+            throw new Error(errorData.error || 'Erreur lors de la suppression');
         }
 
         // Retirer la vidéo de la liste
         allVideos = allVideos.filter(v => v.public_id !== publicId);
         displayVideos();
-        showToast('Vidéo déplacée dans la corbeille');
+        showToast('La vidéo a bien été supprimée');
     } catch (err) {
         alert(`Erreur: ${err.message}`);
     }

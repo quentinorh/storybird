@@ -276,15 +276,7 @@ main {
     color: var(--text-light);
     font-size: 13px;
     font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
     flex: 1;
-}
-
-.video-date::before {
-    content: '📅';
-    font-size: 14px;
 }
 
 .video-actions {
@@ -309,50 +301,50 @@ main {
     flex-shrink: 0;
 }
 
-.btn span {
-    font-size: 18px;
-    line-height: 1;
+.btn-icon {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+    display: block;
 }
 
 .btn-favorite {
-    background: #FFF9E6;
-    color: var(--text-dark);
-    border: 1px solid #FFE082;
+    background: var(--primary-yellow);
+    opacity: 0.4;
+    border: none;
 }
 
 .btn-favorite:hover {
-    background: #FFF59D;
+    opacity: 0.7;
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
 
 .btn-favorite.active {
-    background: var(--primary-yellow);
-    color: var(--text-dark);
-    border-color: var(--primary-yellow);
+    opacity: 1;
     box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
 }
 
 .btn-share {
-    background: #E3F2FD;
-    color: var(--primary-blue);
-    border: 1px solid #90CAF9;
+    background: var(--primary-blue);
+    opacity: 1;
+    border: none;
 }
 
 .btn-share:hover {
-    background: #BBDEFB;
+    opacity: 0.9;
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
 
 .btn-delete {
-    background: #FFEBEE;
-    color: var(--primary-red);
-    border: 1px solid #EF9A9A;
+    background: var(--primary-red);
+    opacity: 1;
+    border: none;
 }
 
 .btn-delete:hover {
-    background: #FFCDD2;
+    opacity: 0.9;
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
