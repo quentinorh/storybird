@@ -1,0 +1,107 @@
+@media (max-width: 1024px) {
+    .videos-container {
+        column-count: 2;
+        max-width: calc(2 * 320px + 1 * 24px);
+    }
+}
+
+@media (max-width: 768px) {
+    .videos-container {
+        column-count: 1;
+        max-width: 100%;
+    }
+
+    body {
+        padding: 15px;
+    }
+
+    body::before {
+        background-size: 150% auto;
+    }
+
+    header {
+        padding: 30px 20px;
+    }
+
+    .logo-img {
+        height: 300px;
+    }
+
+    .empty-logo-img {
+        height: 200px;
+    }
+    
+    header h1 {
+        font-size: 2.2em;
+    }
+
+    .video-actions {
+        gap: 6px;
+    }
+
+    .btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .btn span {
+        font-size: 16px;
+    }
+
+    .toast {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        padding: 14px 20px;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-width: none;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 20px;
+    }
+
+    .modal-title {
+        font-size: 1.3em;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .modal-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    body::before {
+        background-size: 120% auto;
+    }
+
+    .logo-img {
+        height: 200px;
+    }
+
+    .video-date-container {
+        flex-wrap: wrap;
+    }
+
+    .video-actions {
+        gap: 6px;
+    }
+
+    .btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .btn span {
+        font-size: 16px;
+    }
+}

@@ -285,31 +285,39 @@ function createVideoCard(video) {
                         <button class="btn btn-favorite ${video.is_favorite ? 'active' : ''}" 
                                 onclick="toggleFavorite('${safePublicId.replace(/'/g, "\\'")}')"
                                 title="${video.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
-                            <img src="fav.svg" alt="Favoris" class="btn-icon">
+                            <img src="images/fav.svg" alt="Favoris" class="btn-icon">
                         </button>
                         <button class="btn btn-edit" 
                                 onclick="editVideo('${safePublicId.replace(/'/g, "\\'")}')"
-                                title="Modifier le titre et la description">
-                            <img src="edit.svg" alt="Modifier" class="btn-icon">
+                                title="Modifier la description">
+                            <img src="images/edit.svg" alt="Modifier" class="btn-icon">
                         </button>
                         <button class="btn btn-share" 
                                 onclick="shareVideo('${safeUrl.replace(/'/g, "\\'")}')"
                                 title="Partager la vidéo">
-                            <img src="share.svg" alt="Partager" class="btn-icon">
+                            <img src="images/share.svg" alt="Partager" class="btn-icon">
                         </button>
                         <button class="btn btn-delete" 
                                 onclick="deleteVideo('${safePublicId.replace(/'/g, "\\'")}')"
                                 title="Supprimer la vidéo">
-                            <img src="del.svg" alt="Supprimer" class="btn-icon">
+                            <img src="images/del.svg" alt="Supprimer" class="btn-icon">
                         </button>
                     </div>
                 </div>
-                ${safeTitle || safeDescription ? `
+                ${safeDescription ? `
                 <div class="video-metadata">
-                    ${safeTitle ? `<div class="video-title">${safeTitle}</div>` : ''}
-                    ${safeDescription ? `<div class="video-description">${safeDescription}</div>` : ''}
+                    <div class="video-description">${safeDescription}</div>
                 </div>
                 ` : ''}
+                <div class="video-edit-container" data-edit-id="${safePublicId}" style="display: none;">
+                    <textarea class="video-edit-textarea" 
+                              data-edit-id="${safePublicId}"
+                              placeholder="Ajouter une description..."></textarea>
+                    <div class="video-edit-actions">
+                        <button class="btn-edit-save" onclick="saveVideoDescription('${safePublicId.replace(/'/g, "\\'")}')">Enregistrer</button>
+                        <button class="btn-edit-cancel" onclick="cancelEditVideo('${safePublicId.replace(/'/g, "\\'")}')">Annuler</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -411,137 +419,115 @@ function showInfoModal() {
     modal.addEventListener('click', handleOverlayClick);
 }
 
-function showEditLoading(show) {
-    const modal = document.getElementById('modal-edit');
-    const loadingEl = document.getElementById('modal-edit-loading');
-    const titleInput = document.getElementById('modal-edit-title');
-    const descriptionInput = document.getElementById('modal-edit-description');
-    const titleLabel = titleInput.previousElementSibling;
-    const descriptionLabel = descriptionInput.previousElementSibling;
-    const okBtn = document.getElementById('modal-edit-ok');
-    const cancelBtn = document.getElementById('modal-edit-cancel');
-
-    if (show) {
-        loadingEl.style.display = 'flex';
-        titleInput.style.display = 'none';
-        descriptionInput.style.display = 'none';
-        titleLabel.style.display = 'none';
-        descriptionLabel.style.display = 'none';
-        okBtn.disabled = true;
-        cancelBtn.disabled = true;
-    } else {
-        loadingEl.style.display = 'none';
-        titleInput.style.display = 'block';
-        descriptionInput.style.display = 'block';
-        titleLabel.style.display = 'block';
-        descriptionLabel.style.display = 'block';
-        okBtn.disabled = false;
-        cancelBtn.disabled = false;
-    }
-}
-
-function closeEdit() {
-    const modal = document.getElementById('modal-edit');
-    const loadingEl = document.getElementById('modal-edit-loading');
-    const titleInput = document.getElementById('modal-edit-title');
-    const descriptionInput = document.getElementById('modal-edit-description');
-    const titleLabel = titleInput.previousElementSibling;
-    const descriptionLabel = descriptionInput.previousElementSibling;
-    const okBtn = document.getElementById('modal-edit-ok');
-    const cancelBtn = document.getElementById('modal-edit-cancel');
-    
-    modal.classList.remove('show');
-    loadingEl.style.display = 'none';
-    titleInput.style.display = 'block';
-    descriptionInput.style.display = 'block';
-    titleLabel.style.display = 'block';
-    descriptionLabel.style.display = 'block';
-    okBtn.disabled = false;
-    cancelBtn.disabled = false;
-}
-
-async function editVideo(publicId) {
+function editVideo(publicId) {
     const video = allVideos.find(v => v.public_id === publicId);
     if (!video) return;
 
-    const modal = document.getElementById('modal-edit');
-    const titleInput = document.getElementById('modal-edit-title');
-    const descriptionInput = document.getElementById('modal-edit-description');
-    const okBtn = document.getElementById('modal-edit-ok');
-    const cancelBtn = document.getElementById('modal-edit-cancel');
+    // Trouver la carte vidéo correspondante
+    const videoCard = document.querySelector(`[data-public-id="${publicId}"]`);
+    if (!videoCard) return;
 
-    // Remplir les champs avec les valeurs actuelles
-    titleInput.value = video.title || '';
-    descriptionInput.value = video.description || '';
-    showEditLoading(false);
-    modal.classList.add('show');
-    titleInput.focus();
+    // Trouver les éléments d'édition
+    const editContainer = videoCard.querySelector(`[data-edit-id="${publicId}"]`);
+    const textarea = editContainer ? editContainer.querySelector('.video-edit-textarea') : null;
+    const metadata = videoCard.querySelector('.video-metadata');
 
-    return new Promise((resolve) => {
-        const cleanup = () => {
-            closeEdit();
-            okBtn.removeEventListener('click', handleOk);
-            cancelBtn.removeEventListener('click', handleCancel);
-            modal.removeEventListener('click', handleOverlayClick);
-        };
+    if (!editContainer || !textarea) return;
 
-        const handleOk = async () => {
-            const title = titleInput.value.trim();
-            const description = descriptionInput.value.trim();
+    // Remplir le textarea avec la description actuelle
+    textarea.value = video.description || '';
 
-            // Afficher le chargement
-            showEditLoading(true);
+    // Masquer les métadonnées et afficher la zone d'édition
+    if (metadata) {
+        metadata.style.display = 'none';
+    }
+    editContainer.style.display = 'block';
+    textarea.focus();
+    textarea.select();
 
-            try {
-                const encodedPublicId = encodeURIComponent(publicId);
-                const response = await fetch(`${API_BASE_URL}/videos/${encodedPublicId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        title: title || null,
-                        description: description || null
-                    })
-                });
+    // Gérer la touche Escape pour annuler
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            cancelEditVideo(publicId);
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+}
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
-                    throw new Error(errorData.error || 'Erreur lors de la modification');
-                }
+function cancelEditVideo(publicId) {
+    const videoCard = document.querySelector(`[data-public-id="${publicId}"]`);
+    if (!videoCard) return;
 
-                // Fermer la modale
-                cleanup();
+    const editContainer = videoCard.querySelector(`[data-edit-id="${publicId}"]`);
+    const textarea = editContainer ? editContainer.querySelector('.video-edit-textarea') : null;
+    const metadata = videoCard.querySelector('.video-metadata');
 
-                // Mettre à jour l'état local
-                video.title = title || null;
-                video.description = description || null;
-                displayVideos();
-                showToast('Vidéo éditée avec succès');
-                resolve(true);
-            } catch (err) {
-                // Masquer le chargement et fermer la modale
-                cleanup();
-                await showAlert(`Erreur: ${err.message}`);
-                resolve(false);
-            }
-        };
+    if (editContainer) {
+        editContainer.style.display = 'none';
+    }
+    if (metadata) {
+        metadata.style.display = '';
+    }
+    if (textarea) {
+        textarea.value = '';
+    }
+}
 
-        const handleCancel = () => {
-            cleanup();
-            resolve(false);
-        };
+async function saveVideoDescription(publicId) {
+    const video = allVideos.find(v => v.public_id === publicId);
+    if (!video) return;
 
-        const handleOverlayClick = (e) => {
-            if (e.target.classList.contains('modal-overlay')) {
-                handleCancel();
-            }
-        };
+    const videoCard = document.querySelector(`[data-public-id="${publicId}"]`);
+    if (!videoCard) return;
 
-        okBtn.addEventListener('click', handleOk);
-        cancelBtn.addEventListener('click', handleCancel);
-        modal.addEventListener('click', handleOverlayClick);
-    });
+    const editContainer = videoCard.querySelector(`[data-edit-id="${publicId}"]`);
+    const textarea = editContainer ? editContainer.querySelector('.video-edit-textarea') : null;
+    if (!textarea) return;
+
+    const description = textarea.value.trim();
+    const saveBtn = videoCard.querySelector('.btn-edit-save');
+    const cancelBtn = videoCard.querySelector('.btn-edit-cancel');
+
+    // Désactiver les boutons pendant la sauvegarde
+    if (saveBtn) saveBtn.disabled = true;
+    if (cancelBtn) cancelBtn.disabled = true;
+    if (textarea) textarea.disabled = true;
+
+    try {
+        const encodedPublicId = encodeURIComponent(publicId);
+        const response = await fetch(`${API_BASE_URL}/videos/${encodedPublicId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: video.title || null,
+                description: description || null
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+            throw new Error(errorData.error || 'Erreur lors de la modification');
+        }
+
+        // Mettre à jour l'état local
+        video.description = description || null;
+        
+        // Masquer la zone d'édition
+        cancelEditVideo(publicId);
+        
+        // Rafraîchir l'affichage
+        displayVideos();
+        showToast('Description enregistrée avec succès');
+    } catch (err) {
+        // Réactiver les boutons en cas d'erreur
+        if (saveBtn) saveBtn.disabled = false;
+        if (cancelBtn) cancelBtn.disabled = false;
+        if (textarea) textarea.disabled = false;
+        await showAlert(`Erreur: ${err.message}`);
+    }
 }
 
 async function deleteVideo(publicId) {
