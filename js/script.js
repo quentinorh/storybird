@@ -359,7 +359,7 @@ function createVideoCard(video) {
     const safeDescription = video.description ? escapeHtml(video.description) : '';
 
     return `
-        <div class="video-card" data-public-id="${safePublicId}">
+        <div class="video-card ${video.is_favorite ? 'favorite' : ''}" data-public-id="${safePublicId}">
             <div class="video-wrapper">
                 ${safeDescription ? `
                 <div class="video-description-overlay">
@@ -376,7 +376,7 @@ function createVideoCard(video) {
                 <div class="video-edit-container" data-edit-id="${safePublicId}" style="display: none;">
                     <textarea class="video-edit-textarea" 
                               data-edit-id="${safePublicId}"
-                              placeholder="Ajouter une description..."></textarea>
+                              placeholder="Ajouter un commentaire..."></textarea>
                     <div class="video-edit-actions">
                         <button class="btn-edit-save" onclick="saveVideoDescription('${safePublicId.replace(/'/g, "\\'")}')">Enregistrer</button>
                         <button class="btn-edit-cancel" onclick="cancelEditVideo('${safePublicId.replace(/'/g, "\\'")}')">Annuler</button>
@@ -397,8 +397,8 @@ function createVideoCard(video) {
                         </button>
                         <button class="btn btn-edit" 
                                 onclick="editVideo('${safePublicId.replace(/'/g, "\\'")}')"
-                                title="Modifier la description">
-                            <img src="images/edit.svg" alt="Modifier" class="btn-icon">
+                                title="Ajouter ou modifier le commentaire">
+                            <img src="images/edit.svg" alt="Ajouter ou modifier le commentaire" class="btn-icon">
                         </button>
                         <button class="btn btn-share" 
                                 onclick="shareVideo('${safeUrl.replace(/'/g, "\\'")}')"
@@ -610,7 +610,7 @@ async function saveVideoDescription(publicId) {
         
         // Rafraîchir l'affichage
         displayVideos();
-        showToast('Description enregistrée avec succès');
+        showToast('Commentaire enregistré avec succès');
     } catch (err) {
         // Réactiver les boutons en cas d'erreur
         if (saveBtn) saveBtn.disabled = false;
