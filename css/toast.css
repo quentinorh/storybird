@@ -25,6 +25,8 @@
     background: var(--primary-green);
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    flex-shrink: 0;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -32,6 +34,13 @@
     font-weight: bold;
     font-size: 14px;
     color: white;
+}
+
+.toast-message {
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 @keyframes slideInRight {
