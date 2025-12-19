@@ -114,6 +114,19 @@
     cursor: pointer;
 }
 
+/* Masquer le contrôle de volume */
+.video-wrapper video::-webkit-media-controls-volume-slider {
+    display: none !important;
+}
+
+.video-wrapper video::-webkit-media-controls-mute-button {
+    display: none !important;
+}
+
+.video-wrapper video::-webkit-media-controls-volume-control-container {
+    display: none !important;
+}
+
 .video-play-overlay {
     position: absolute;
     top: 50%;
