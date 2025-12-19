@@ -97,7 +97,8 @@ app.get('/api/videos', async (req, res) => {
             type: 'upload',
             prefix: PREFIX,
             tags: true,
-            context: true
+            context: true,
+            max_results: 500
         });
 
         // Filtrer les vidéos dans la corbeille

@@ -239,6 +239,97 @@ function displayVideos() {
 
     emptyState.style.display = 'none';
     container.innerHTML = videosToShow.map(video => createVideoCard(video)).join('');
+    
+    // Attacher les événements pour les boutons play
+    attachVideoPlayHandlers();
+}
+
+function attachVideoPlayHandlers() {
+    // Gérer les clics sur les boutons play
+    document.querySelectorAll('.video-play-overlay').forEach(playBtn => {
+        playBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const videoId = this.getAttribute('data-play-id');
+            const video = document.querySelector(`video[data-video-id="${videoId}"]`);
+            const wrapper = this.closest('.video-wrapper');
+            
+            if (video && wrapper) {
+                video.play();
+                video.setAttribute('controls', 'true');
+                wrapper.classList.add('playing');
+            }
+        });
+    });
+    
+    // Gérer les clics sur les vidéos pour afficher les contrôles
+    document.querySelectorAll('video[data-video-id]').forEach(video => {
+        video.addEventListener('click', function(e) {
+            // Éviter de déclencher si on clique sur les contrôles
+            if (e.target === this || e.target.tagName === 'VIDEO') {
+                // Si la vidéo est en pause, la lancer et afficher les contrôles
+                if (this.paused) {
+                    this.play();
+                    this.setAttribute('controls', 'true');
+                } else {
+                    // Si la vidéo est en lecture, afficher/masquer les contrôles
+                    if (this.hasAttribute('controls')) {
+                        this.removeAttribute('controls');
+                    } else {
+                        this.setAttribute('controls', 'true');
+                    }
+                }
+            }
+        });
+        
+        video.addEventListener('play', function() {
+            const wrapper = this.closest('.video-wrapper');
+            if (wrapper) {
+                wrapper.classList.add('playing');
+            }
+            // Afficher les contrôles quand la vidéo démarre
+            this.setAttribute('controls', 'true');
+        });
+        
+        video.addEventListener('pause', function() {
+            const wrapper = this.closest('.video-wrapper');
+            if (wrapper) {
+                wrapper.classList.remove('playing');
+            }
+        });
+        
+        video.addEventListener('ended', function() {
+            const wrapper = this.closest('.video-wrapper');
+            if (wrapper) {
+                wrapper.classList.remove('playing');
+            }
+            // Masquer les contrôles quand la vidéo se termine
+            this.removeAttribute('controls');
+        });
+        
+        // Masquer les contrôles après un délai d'inactivité
+        let controlsTimeout;
+        const hideControls = () => {
+            if (!video.paused && video.hasAttribute('controls')) {
+                clearTimeout(controlsTimeout);
+                controlsTimeout = setTimeout(() => {
+                    if (!video.paused) {
+                        video.removeAttribute('controls');
+                    }
+                }, 3000);
+            }
+        };
+        
+        video.addEventListener('mousemove', function() {
+            if (!video.paused && !video.hasAttribute('controls')) {
+                video.setAttribute('controls', 'true');
+            }
+            hideControls();
+        });
+        
+        video.addEventListener('mouseleave', function() {
+            hideControls();
+        });
+    });
 }
 
 // Fonction pour échapper les caractères HTML (protection XSS)
@@ -270,10 +361,27 @@ function createVideoCard(video) {
     return `
         <div class="video-card" data-public-id="${safePublicId}">
             <div class="video-wrapper">
-                <video controls preload="metadata">
+                ${safeDescription ? `
+                <div class="video-description-overlay">
+                    <div class="video-description-badge">
+                        <div class="video-description-text">${safeDescription}</div>
+                    </div>
+                </div>
+                ` : ''}
+                <video preload="metadata" data-video-id="${safePublicId}">
                     <source src="${safeUrl}" type="video/mp4">
                     Votre navigateur ne supporte pas la lecture de vidéos.
                 </video>
+                <div class="video-play-overlay" data-play-id="${safePublicId}"></div>
+                <div class="video-edit-container" data-edit-id="${safePublicId}" style="display: none;">
+                    <textarea class="video-edit-textarea" 
+                              data-edit-id="${safePublicId}"
+                              placeholder="Ajouter une description..."></textarea>
+                    <div class="video-edit-actions">
+                        <button class="btn-edit-save" onclick="saveVideoDescription('${safePublicId.replace(/'/g, "\\'")}')">Enregistrer</button>
+                        <button class="btn-edit-cancel" onclick="cancelEditVideo('${safePublicId.replace(/'/g, "\\'")}')">Annuler</button>
+                    </div>
+                </div>
             </div>
             <div class="video-info">
                 <div class="video-date-container">
@@ -302,20 +410,6 @@ function createVideoCard(video) {
                                 title="Supprimer la vidéo">
                             <img src="images/del.svg" alt="Supprimer" class="btn-icon">
                         </button>
-                    </div>
-                </div>
-                ${safeDescription ? `
-                <div class="video-metadata">
-                    <div class="video-description">${safeDescription}</div>
-                </div>
-                ` : ''}
-                <div class="video-edit-container" data-edit-id="${safePublicId}" style="display: none;">
-                    <textarea class="video-edit-textarea" 
-                              data-edit-id="${safePublicId}"
-                              placeholder="Ajouter une description..."></textarea>
-                    <div class="video-edit-actions">
-                        <button class="btn-edit-save" onclick="saveVideoDescription('${safePublicId.replace(/'/g, "\\'")}')">Enregistrer</button>
-                        <button class="btn-edit-cancel" onclick="cancelEditVideo('${safePublicId.replace(/'/g, "\\'")}')">Annuler</button>
                     </div>
                 </div>
             </div>
@@ -430,20 +524,20 @@ function editVideo(publicId) {
     // Trouver les éléments d'édition
     const editContainer = videoCard.querySelector(`[data-edit-id="${publicId}"]`);
     const textarea = editContainer ? editContainer.querySelector('.video-edit-textarea') : null;
-    const metadata = videoCard.querySelector('.video-metadata');
 
     if (!editContainer || !textarea) return;
 
     // Remplir le textarea avec la description actuelle
     textarea.value = video.description || '';
 
-    // Masquer les métadonnées et afficher la zone d'édition
-    if (metadata) {
-        metadata.style.display = 'none';
-    }
+    // Afficher la zone d'édition
     editContainer.style.display = 'block';
-    textarea.focus();
-    textarea.select();
+    
+    // Petit délai pour permettre l'animation
+    setTimeout(() => {
+        textarea.focus();
+        textarea.select();
+    }, 100);
 
     // Gérer la touche Escape pour annuler
     const handleEscape = (e) => {
@@ -461,13 +555,9 @@ function cancelEditVideo(publicId) {
 
     const editContainer = videoCard.querySelector(`[data-edit-id="${publicId}"]`);
     const textarea = editContainer ? editContainer.querySelector('.video-edit-textarea') : null;
-    const metadata = videoCard.querySelector('.video-metadata');
 
     if (editContainer) {
         editContainer.style.display = 'none';
-    }
-    if (metadata) {
-        metadata.style.display = '';
     }
     if (textarea) {
         textarea.value = '';
