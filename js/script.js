@@ -377,10 +377,6 @@ function createVideoCard(video) {
                     <textarea class="video-edit-textarea" 
                               data-edit-id="${safePublicId}"
                               placeholder="Ajouter un commentaire..."></textarea>
-                    <div class="video-edit-actions">
-                        <button class="btn-edit-save" onclick="saveVideoDescription('${safePublicId.replace(/'/g, "\\'")}')">Enregistrer</button>
-                        <button class="btn-edit-cancel" onclick="cancelEditVideo('${safePublicId.replace(/'/g, "\\'")}')">Annuler</button>
-                    </div>
                 </div>
             </div>
             <div class="video-info">
@@ -418,6 +414,24 @@ function createVideoCard(video) {
 }
 
 async function toggleFavorite(publicId) {
+    // Trouver le bouton favoris correspondant
+    const videoCard = document.querySelector(`[data-public-id="${publicId}"]`);
+    if (!videoCard) return;
+
+    const favoriteBtn = videoCard.querySelector('.btn-favorite');
+    if (!favoriteBtn) return;
+
+    const iconImg = favoriteBtn.querySelector('.btn-icon');
+    if (!iconImg) return;
+
+    // Remplacer l'icône par un spinner
+    const spinner = document.createElement('div');
+    spinner.className = 'btn-spinner';
+    iconImg.style.display = 'none';
+    favoriteBtn.appendChild(spinner);
+    favoriteBtn.disabled = true;
+    favoriteBtn.style.opacity = '0.7';
+
     try {
         const video = allVideos.find(v => v.public_id === publicId);
         const isFavorite = video.is_favorite;
@@ -437,9 +451,42 @@ async function toggleFavorite(publicId) {
 
         // Mettre à jour l'état local
         video.is_favorite = !isFavorite;
-        displayVideos();
-        showToast(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris');
+        
+        // Mettre à jour le DOM directement
+        if (isFavorite) {
+            videoCard.classList.remove('favorite');
+            favoriteBtn.classList.remove('active');
+            favoriteBtn.title = 'Ajouter aux favoris';
+        } else {
+            videoCard.classList.add('favorite');
+            favoriteBtn.classList.add('active');
+            favoriteBtn.title = 'Retirer des favoris';
+        }
+        
+        // Restaurer l'icône
+        spinner.remove();
+        iconImg.style.display = 'block';
+        favoriteBtn.disabled = false;
+        favoriteBtn.style.cursor = 'pointer';
+        favoriteBtn.style.opacity = '';
+        
+        // Si on est dans le filtre favoris et qu'on retire un favori, retirer la carte
+        if (currentFilter === 'favorites' && isFavorite) {
+            videoCard.remove();
+            const container = document.getElementById('videos-container');
+            const emptyState = document.getElementById('empty-state');
+            const remainingVideos = container.querySelectorAll('.video-card');
+            if (remainingVideos.length === 0) {
+                emptyState.style.display = 'block';
+            }
+        }
     } catch (err) {
+        // Restaurer l'icône en cas d'erreur
+        spinner.remove();
+        iconImg.style.display = 'block';
+        favoriteBtn.disabled = false;
+        favoriteBtn.style.cursor = 'pointer';
+        favoriteBtn.style.opacity = '';
         await showAlert(`Erreur: ${err.message}`);
     }
 }
@@ -524,11 +571,30 @@ function editVideo(publicId) {
     // Trouver les éléments d'édition
     const editContainer = videoCard.querySelector(`[data-edit-id="${publicId}"]`);
     const textarea = editContainer ? editContainer.querySelector('.video-edit-textarea') : null;
+    const videoActions = videoCard.querySelector('.video-actions');
 
-    if (!editContainer || !textarea) return;
+    if (!editContainer || !textarea || !videoActions) return;
 
     // Remplir le textarea avec la description actuelle
     textarea.value = video.description || '';
+
+    // Sauvegarder les boutons d'action originaux
+    const originalButtons = Array.from(videoActions.children);
+    videoActions.dataset.originalButtons = JSON.stringify(originalButtons.map(btn => btn.outerHTML));
+
+    // Remplacer les boutons d'action par les boutons enregistrer/annuler
+    videoActions.innerHTML = `
+        <button class="btn btn-save" 
+                onclick="saveVideoDescription('${publicId.replace(/'/g, "\\'")}')"
+                title="Enregistrer le commentaire">
+            <img src="images/ok.svg" alt="Enregistrer" class="btn-icon">
+        </button>
+        <button class="btn btn-cancel" 
+                onclick="cancelEditVideo('${publicId.replace(/'/g, "\\'")}')"
+                title="Annuler">
+            <img src="images/cancel.svg" alt="Annuler" class="btn-icon">
+        </button>
+    `;
 
     // Afficher la zone d'édition
     editContainer.style.display = 'block';
@@ -555,12 +621,27 @@ function cancelEditVideo(publicId) {
 
     const editContainer = videoCard.querySelector(`[data-edit-id="${publicId}"]`);
     const textarea = editContainer ? editContainer.querySelector('.video-edit-textarea') : null;
+    const videoActions = videoCard.querySelector('.video-actions');
 
     if (editContainer) {
         editContainer.style.display = 'none';
     }
     if (textarea) {
         textarea.value = '';
+    }
+
+    // Restaurer les boutons d'action originaux
+    if (videoActions && videoActions.dataset.originalButtons) {
+        try {
+            const originalButtons = JSON.parse(videoActions.dataset.originalButtons);
+            videoActions.innerHTML = originalButtons.join('');
+            delete videoActions.dataset.originalButtons;
+            
+            // Réattacher les handlers pour les vidéos
+            attachVideoPlayHandlers();
+        } catch (e) {
+            console.error('Erreur lors de la restauration des boutons:', e);
+        }
     }
 }
 
@@ -576,13 +657,24 @@ async function saveVideoDescription(publicId) {
     if (!textarea) return;
 
     const description = textarea.value.trim();
-    const saveBtn = videoCard.querySelector('.btn-edit-save');
-    const cancelBtn = videoCard.querySelector('.btn-edit-cancel');
+    const videoActions = videoCard.querySelector('.video-actions');
+    const saveBtn = videoCard.querySelector('.btn-save');
+    const cancelBtn = videoCard.querySelector('.btn-cancel');
+    const saveIcon = saveBtn ? saveBtn.querySelector('.btn-icon') : null;
 
-    // Désactiver les boutons pendant la sauvegarde
+    // Désactiver les boutons et le textarea pendant la sauvegarde
     if (saveBtn) saveBtn.disabled = true;
     if (cancelBtn) cancelBtn.disabled = true;
     if (textarea) textarea.disabled = true;
+    
+    // Afficher un spinner sur le bouton enregistrer
+    if (saveBtn && saveIcon) {
+        const spinner = document.createElement('div');
+        spinner.className = 'btn-spinner';
+        saveIcon.style.display = 'none';
+        saveBtn.appendChild(spinner);
+        saveBtn.style.opacity = '0.7';
+    }
 
     try {
         const encodedPublicId = encodeURIComponent(publicId);
@@ -605,29 +697,76 @@ async function saveVideoDescription(publicId) {
         // Mettre à jour l'état local
         video.description = description || null;
         
-        // Masquer la zone d'édition
-        cancelEditVideo(publicId);
+        // Mettre à jour le DOM directement
+        const videoWrapper = videoCard.querySelector('.video-wrapper');
+        const existingOverlay = videoWrapper.querySelector('.video-description-overlay');
         
-        // Rafraîchir l'affichage
-        displayVideos();
-        showToast('Commentaire enregistré avec succès');
+        if (description) {
+            // Ajouter ou mettre à jour le badge de description
+            if (existingOverlay) {
+                const descriptionText = existingOverlay.querySelector('.video-description-text');
+                if (descriptionText) {
+                    descriptionText.textContent = description;
+                }
+            } else {
+                const overlay = document.createElement('div');
+                overlay.className = 'video-description-overlay';
+                overlay.innerHTML = `
+                    <div class="video-description-badge">
+                        <div class="video-description-text">${escapeHtml(description)}</div>
+                    </div>
+                `;
+                videoWrapper.insertBefore(overlay, videoWrapper.firstChild);
+            }
+        } else {
+            // Retirer le badge de description s'il existe
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+        }
+        
+        // Masquer la zone d'édition et restaurer les boutons d'action
+        cancelEditVideo(publicId);
     } catch (err) {
         // Réactiver les boutons en cas d'erreur
-        if (saveBtn) saveBtn.disabled = false;
+        if (saveBtn) {
+            const spinner = saveBtn.querySelector('.btn-spinner');
+            if (spinner && saveIcon) {
+                spinner.remove();
+                saveIcon.style.display = 'block';
+            }
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '';
+        }
         if (cancelBtn) cancelBtn.disabled = false;
         if (textarea) textarea.disabled = false;
+        
         await showAlert(`Erreur: ${err.message}`);
     }
 }
 
 async function deleteVideo(publicId) {
-    const confirmed = await showConfirm('Êtes-vous sûr de vouloir supprimer cette vidéo ?');
-    if (!confirmed) {
-        return;
-    }
+    // Trouver le bouton de suppression correspondant
+    const videoCard = document.querySelector(`[data-public-id="${publicId}"]`);
+    if (!videoCard) return;
 
-    // Afficher le chargement
-    showConfirmLoading(true);
+    const deleteBtn = videoCard.querySelector('.btn-delete');
+    if (!deleteBtn) return;
+
+    const iconImg = deleteBtn.querySelector('.btn-icon');
+    if (!iconImg) return;
+
+    // Sauvegarder l'icône originale
+    const originalIconSrc = iconImg.src;
+    const originalIconAlt = iconImg.alt;
+
+    // Remplacer l'icône par un spinner
+    const spinner = document.createElement('div');
+    spinner.className = 'btn-spinner';
+    iconImg.style.display = 'none';
+    deleteBtn.appendChild(spinner);
+    deleteBtn.disabled = true;
+    deleteBtn.style.opacity = '0.7';
 
     try {
         const encodedPublicId = encodeURIComponent(publicId);
@@ -640,16 +779,27 @@ async function deleteVideo(publicId) {
             throw new Error(errorData.error || 'Erreur lors de la suppression');
         }
 
-        // Fermer la modale
-        closeConfirm();
-
         // Retirer la vidéo de la liste
         allVideos = allVideos.filter(v => v.public_id !== publicId);
-        displayVideos();
-        showToast('La vidéo a bien été supprimée');
+        
+        // Retirer la carte du DOM directement
+        videoCard.remove();
+        
+        // Vérifier si l'état vide doit être affiché
+        const container = document.getElementById('videos-container');
+        const emptyState = document.getElementById('empty-state');
+        const remainingVideos = container.querySelectorAll('.video-card');
+        
+        if (remainingVideos.length === 0) {
+            emptyState.style.display = 'block';
+        }
     } catch (err) {
-        // Masquer le chargement et fermer la modale de confirmation
-        closeConfirm();
+        // Restaurer l'icône en cas d'erreur
+        spinner.remove();
+        iconImg.style.display = 'block';
+        deleteBtn.disabled = false;
+        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.style.opacity = '1';
         await showAlert(`Erreur: ${err.message}`);
     }
 }
