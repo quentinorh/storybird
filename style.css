@@ -298,24 +298,10 @@ main {
 }
 
 .videos-container {
-    column-count: 3;
+    column-count: 1;
     column-gap: 24px;
-    max-width: calc(3 * 320px + 2 * 24px);
+    max-width: 500px;
     margin: 0 auto;
-}
-
-@media (max-width: 1024px) {
-    .videos-container {
-        column-count: 2;
-        max-width: calc(2 * 320px + 1 * 24px);
-    }
-}
-
-@media (max-width: 768px) {
-    .videos-container {
-        column-count: 1;
-        max-width: 100%;
-    }
 }
 
 .video-card {
