@@ -225,6 +225,15 @@ app.delete('/api/videos/:publicId', async (req, res) => {
     }
 });
 
+// Route pour exposer la config du Pi au frontend
+app.get('/api/pi-config', (req, res) => {
+    res.json({
+        piUrl: process.env.PI_URL || null,
+        configured: !!process.env.PI_URL,
+        streamPath: '/birdcam/'
+    });
+});
+
 // Servir les fichiers statiques
 app.use(express.static('.'));
 

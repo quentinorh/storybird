@@ -51,6 +51,7 @@ header h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-decoration: none;
 }
 
 #btn-all.filter-btn {
@@ -61,11 +62,6 @@ header h1 {
 #btn-favorites.filter-btn:not(.active) {
     border-color: var(--primary-yellow);
     color: var(--primary-yellow);
-}
-
-#btn-all.filter-btn {
-    border-color: var(--primary-green);
-    color: var(--primary-green);
 }
 
 .filter-btn-icon {
@@ -125,12 +121,45 @@ header h1 {
 #btn-favorites.filter-btn:hover:not(.active) {
     border-color: var(--primary-yellow);
     color: var(--primary-yellow);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 #btn-favorites.filter-btn.active:hover {
     background: #FFB300;
     border-color: #FFB300;
     color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Bouton Live */
+#btn-live.filter-btn {
+    border-color: var(--primary-red);
+    color: var(--primary-red);
+    text-decoration: none;
+}
+
+#btn-live.filter-btn:hover:not(.active) {
+    border-color: #dc2626;
+    color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+#btn-live.filter-btn.active {
+    background: var(--primary-red);
+    color: white;
+    border-color: var(--primary-red);
+    box-shadow: 0 4px 12px rgba(237, 117, 68, 0.2);
+}
+
+#btn-live.filter-btn.active:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 .info-button {

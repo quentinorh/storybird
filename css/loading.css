@@ -73,3 +73,16 @@
     font-weight: 500;
     color: var(--text-light);
 }
+
+/* Lazy loading sentinel */
+.load-more-sentinel {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.load-more-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

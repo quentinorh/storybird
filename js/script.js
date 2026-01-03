@@ -6,6 +6,12 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 let currentFilter = 'all';
 let allVideos = [];
 
+// Lazy loading configuration
+const VIDEOS_PER_PAGE = 10;
+let displayedCount = 0;
+let isLoadingMore = false;
+let loadMoreObserver = null;
+
 // Fonctions pour les modales personnalisées
 function showConfirm(message) {
     return new Promise((resolve) => {
@@ -223,25 +229,132 @@ async function loadVideos() {
     }
 }
 
+function getFilteredVideos() {
+    return currentFilter === 'favorites' 
+        ? allVideos.filter(v => v.is_favorite)
+        : allVideos;
+}
+
 function displayVideos() {
     const container = document.getElementById('videos-container');
     const emptyState = document.getElementById('empty-state');
 
-    let videosToShow = currentFilter === 'favorites' 
-        ? allVideos.filter(v => v.is_favorite)
-        : allVideos;
+    // Réinitialiser le compteur
+    displayedCount = 0;
+    
+    // Nettoyer l'observer précédent
+    if (loadMoreObserver) {
+        loadMoreObserver.disconnect();
+    }
+
+    const videosToShow = getFilteredVideos();
 
     if (videosToShow.length === 0) {
         container.innerHTML = '';
         emptyState.style.display = 'block';
+        removeLoadMoreSentinel();
         return;
     }
 
     emptyState.style.display = 'none';
-    container.innerHTML = videosToShow.map(video => createVideoCard(video)).join('');
+    
+    // Afficher seulement les premières vidéos
+    const initialVideos = videosToShow.slice(0, VIDEOS_PER_PAGE);
+    container.innerHTML = initialVideos.map(video => createVideoCard(video)).join('');
+    displayedCount = initialVideos.length;
     
     // Attacher les événements pour les boutons play
     attachVideoPlayHandlers();
+    
+    // Configurer l'infinite scroll si nécessaire
+    if (videosToShow.length > VIDEOS_PER_PAGE) {
+        setupLoadMoreObserver();
+    } else {
+        removeLoadMoreSentinel();
+    }
+}
+
+function setupLoadMoreObserver() {
+    // Créer ou récupérer la sentinelle
+    let sentinel = document.getElementById('load-more-sentinel');
+    if (!sentinel) {
+        sentinel = document.createElement('div');
+        sentinel.id = 'load-more-sentinel';
+        sentinel.className = 'load-more-sentinel';
+        sentinel.innerHTML = `
+            <div class="load-more-spinner">
+                <div class="spinner"></div>
+            </div>
+        `;
+    }
+    
+    // Ajouter la sentinelle après le container
+    const container = document.getElementById('videos-container');
+    container.after(sentinel);
+    
+    // Créer l'observer
+    loadMoreObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !isLoadingMore) {
+                loadMoreVideos();
+            }
+        });
+    }, {
+        rootMargin: '200px' // Charger un peu avant d'atteindre la fin
+    });
+    
+    loadMoreObserver.observe(sentinel);
+}
+
+function removeLoadMoreSentinel() {
+    const sentinel = document.getElementById('load-more-sentinel');
+    if (sentinel) {
+        sentinel.remove();
+    }
+    if (loadMoreObserver) {
+        loadMoreObserver.disconnect();
+        loadMoreObserver = null;
+    }
+}
+
+function loadMoreVideos() {
+    if (isLoadingMore) return;
+    
+    const videosToShow = getFilteredVideos();
+    
+    // Vérifier s'il reste des vidéos à charger
+    if (displayedCount >= videosToShow.length) {
+        removeLoadMoreSentinel();
+        return;
+    }
+    
+    isLoadingMore = true;
+    
+    // Simuler un petit délai pour une meilleure UX
+    setTimeout(() => {
+        const container = document.getElementById('videos-container');
+        const nextVideos = videosToShow.slice(displayedCount, displayedCount + VIDEOS_PER_PAGE);
+        
+        // Ajouter les nouvelles cartes
+        nextVideos.forEach(video => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = createVideoCard(video);
+            const card = tempDiv.firstElementChild;
+            container.appendChild(card);
+        });
+        
+        displayedCount += nextVideos.length;
+        
+        // Réattacher les handlers pour les nouvelles vidéos
+        attachVideoPlayHandlers();
+        
+        isLoadingMore = false;
+        
+        // Retirer la sentinelle si toutes les vidéos sont affichées
+        if (displayedCount >= videosToShow.length) {
+            removeLoadMoreSentinel();
+        }
+    }, 300);
 }
 
 function attachVideoPlayHandlers() {
@@ -473,11 +586,21 @@ async function toggleFavorite(publicId) {
         // Si on est dans le filtre favoris et qu'on retire un favori, retirer la carte
         if (currentFilter === 'favorites' && isFavorite) {
             videoCard.remove();
+            displayedCount = Math.max(0, displayedCount - 1);
+            
             const container = document.getElementById('videos-container');
             const emptyState = document.getElementById('empty-state');
             const remainingVideos = container.querySelectorAll('.video-card');
+            
             if (remainingVideos.length === 0) {
                 emptyState.style.display = 'block';
+                removeLoadMoreSentinel();
+            } else {
+                // Charger plus de vidéos si nécessaire
+                const videosToShow = getFilteredVideos();
+                if (displayedCount < videosToShow.length && !document.getElementById('load-more-sentinel')) {
+                    setupLoadMoreObserver();
+                }
             }
         }
     } catch (err) {
@@ -785,6 +908,9 @@ async function deleteVideo(publicId) {
         // Retirer la carte du DOM directement
         videoCard.remove();
         
+        // Mettre à jour le compteur
+        displayedCount = Math.max(0, displayedCount - 1);
+        
         // Vérifier si l'état vide doit être affiché
         const container = document.getElementById('videos-container');
         const emptyState = document.getElementById('empty-state');
@@ -792,6 +918,13 @@ async function deleteVideo(publicId) {
         
         if (remainingVideos.length === 0) {
             emptyState.style.display = 'block';
+            removeLoadMoreSentinel();
+        } else {
+            // Charger plus de vidéos si nécessaire
+            const videosToShow = getFilteredVideos();
+            if (displayedCount < videosToShow.length && !document.getElementById('load-more-sentinel')) {
+                setupLoadMoreObserver();
+            }
         }
     } catch (err) {
         // Restaurer l'icône en cas d'erreur

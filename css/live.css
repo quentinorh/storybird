@@ -1,0 +1,72 @@
+/* Page Live - Styles simplifiés */
+
+.live-page {
+    padding: 0 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+}
+
+/* Conteneur vidéo */
+.video-container {
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1/1;
+    background: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+.video-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* État d'erreur */
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    color: var(--text-light);
+}
+
+.error-state p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+.btn-retry {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-retry:hover {
+    background: #1976D2;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .live-page {
+        padding: 0 0.5rem;
+    }
+
+    .video-container {
+        border-radius: 12px;
+    }
+}
