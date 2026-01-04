@@ -1,33 +1,28 @@
 // Gestion des notifications push pour Storybird
 
-const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3000/api' 
-    : `${window.location.origin}/api`;
+// Utiliser API_BASE_URL existante ou la définir si elle n'existe pas
+const PUSH_API_URL = (typeof API_BASE_URL !== 'undefined') 
+    ? API_BASE_URL 
+    : (window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000/api' 
+        : `${window.location.origin}/api`);
 
 let swRegistration = null;
 let isSubscribed = false;
 
 // Initialisation des notifications push
 async function initPushNotifications() {
-    // Vérifier le support des notifications
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        console.log('📵 Notifications push non supportées');
         return false;
     }
 
     try {
-        // Enregistrer le Service Worker
         swRegistration = await navigator.serviceWorker.register('/sw.js');
-        console.log('✅ Service Worker enregistré');
-
-        // Vérifier l'état de l'abonnement
         const subscription = await swRegistration.pushManager.getSubscription();
         isSubscribed = subscription !== null;
-
         updateNotificationButton();
         return true;
     } catch (error) {
-        console.error('❌ Erreur Service Worker:', error);
         return false;
     }
 }
@@ -35,17 +30,14 @@ async function initPushNotifications() {
 // Demander la permission et s'abonner
 async function subscribeToPush() {
     try {
-        // Demander la permission
         const permission = await Notification.requestPermission();
         
         if (permission !== 'granted') {
-            console.log('❌ Permission notifications refusée');
             showNotificationToast('Permission refusée pour les notifications');
             return false;
         }
 
-        // Récupérer la clé publique VAPID
-        const response = await fetch(`${API_BASE_URL}/push/vapid-public-key`);
+        const response = await fetch(`${PUSH_API_URL}/push/vapid-public-key`);
         
         if (!response.ok) {
             if (response.status === 503) {
@@ -56,18 +48,14 @@ async function subscribeToPush() {
         }
 
         const { publicKey } = await response.json();
-
-        // Convertir la clé en Uint8Array
         const applicationServerKey = urlBase64ToUint8Array(publicKey);
 
-        // S'abonner aux notifications push
         const subscription = await swRegistration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: applicationServerKey
         });
 
-        // Envoyer l'abonnement au serveur
-        const subscribeResponse = await fetch(`${API_BASE_URL}/push/subscribe`, {
+        const subscribeResponse = await fetch(`${PUSH_API_URL}/push/subscribe`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(subscription)
@@ -80,10 +68,8 @@ async function subscribeToPush() {
         isSubscribed = true;
         updateNotificationButton();
         showNotificationToast('🔔 Notifications activées !');
-        console.log('✅ Abonné aux notifications push');
         return true;
     } catch (error) {
-        console.error('❌ Erreur abonnement push:', error);
         showNotificationToast('Erreur lors de l\'activation des notifications');
         return false;
     }
@@ -95,11 +81,8 @@ async function unsubscribeFromPush() {
         const subscription = await swRegistration.pushManager.getSubscription();
         
         if (subscription) {
-            // Se désabonner côté navigateur
             await subscription.unsubscribe();
-
-            // Informer le serveur
-            await fetch(`${API_BASE_URL}/push/unsubscribe`, {
+            await fetch(`${PUSH_API_URL}/push/unsubscribe`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(subscription)
@@ -109,10 +92,8 @@ async function unsubscribeFromPush() {
         isSubscribed = false;
         updateNotificationButton();
         showNotificationToast('🔕 Notifications désactivées');
-        console.log('✅ Désabonné des notifications push');
         return true;
     } catch (error) {
-        console.error('❌ Erreur désabonnement:', error);
         return false;
     }
 }
@@ -142,11 +123,8 @@ function updateNotificationButton() {
 
 // Afficher un toast pour les notifications
 function showNotificationToast(message) {
-    // Réutiliser la fonction showToast si elle existe
     if (typeof showToast === 'function') {
         showToast(message);
-    } else {
-        console.log(message);
     }
 }
 
@@ -173,8 +151,18 @@ function arePushNotificationsSupported() {
 
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
+    const notifBtn = document.getElementById('btn-notifications');
+    if (notifBtn) {
+        notifBtn.addEventListener('click', async () => {
+            await togglePushNotifications();
+        });
+    }
+
     if (arePushNotificationsSupported()) {
         initPushNotifications();
+    } else {
+        if (notifBtn) {
+            notifBtn.style.display = 'none';
+        }
     }
 });
-

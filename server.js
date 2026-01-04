@@ -306,7 +306,6 @@ app.post('/api/push/subscribe', (req, res) => {
     if (existingIndex === -1) {
         pushSubscriptions.push(subscription);
         saveSubscriptions(pushSubscriptions);
-        console.log('📱 Nouvel abonnement push enregistré');
     }
 
     res.json({ success: true });
@@ -324,7 +323,6 @@ app.post('/api/push/unsubscribe', (req, res) => {
         sub => sub.endpoint !== subscription.endpoint
     );
     saveSubscriptions(pushSubscriptions);
-    console.log('📱 Abonnement push supprimé');
 
     res.json({ success: true });
 });
@@ -338,8 +336,6 @@ app.post('/api/webhook/cloudinary', async (req, res) => {
         if (notification_type === 'upload' && resource_type === 'video') {
             // Vérifier que la vidéo appartient à notre préfixe
             if (validatePublicId(public_id)) {
-                console.log('🎬 Nouvelle vidéo détectée:', public_id);
-                
                 // Envoyer une notification push à tous les abonnés
                 await sendPushNotifications({
                     title: '🐦 Nouvelle vidéo !',
@@ -364,7 +360,6 @@ app.post('/api/webhook/cloudinary', async (req, res) => {
 // Fonction pour envoyer les notifications push
 async function sendPushNotifications(payload) {
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-        console.log('⚠️  Notifications push non configurées, notification ignorée');
         return;
     }
 
@@ -374,10 +369,7 @@ async function sendPushNotifications(payload) {
     const sendPromises = pushSubscriptions.map(async (subscription, index) => {
         try {
             await webpush.sendNotification(subscription, payloadString);
-            console.log('✅ Notification envoyée');
         } catch (error) {
-            console.error('❌ Erreur envoi notification:', error.message);
-            
             // Si l'abonnement n'est plus valide, le marquer pour suppression
             if (error.statusCode === 410 || error.statusCode === 404) {
                 invalidSubscriptions.push(index);
@@ -393,7 +385,6 @@ async function sendPushNotifications(payload) {
             (_, index) => !invalidSubscriptions.includes(index)
         );
         saveSubscriptions(pushSubscriptions);
-        console.log(`🗑️ ${invalidSubscriptions.length} abonnement(s) invalide(s) supprimé(s)`);
     }
 }
 

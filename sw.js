@@ -4,20 +4,16 @@ const CACHE_NAME = 'storybird-v1';
 
 // Installation du Service Worker
 self.addEventListener('install', (event) => {
-    console.log('🐦 Service Worker installé');
     self.skipWaiting();
 });
 
 // Activation du Service Worker
 self.addEventListener('activate', (event) => {
-    console.log('🐦 Service Worker activé');
     event.waitUntil(clients.claim());
 });
 
 // Réception des notifications push
 self.addEventListener('push', (event) => {
-    console.log('📬 Notification push reçue');
-
     let data = {
         title: '🐦 Storybird',
         body: 'Nouvelle activité détectée',
@@ -31,7 +27,7 @@ self.addEventListener('push', (event) => {
             data = { ...data, ...event.data.json() };
         }
     } catch (e) {
-        console.error('Erreur parsing notification:', e);
+        // Erreur silencieuse
     }
 
     const options = {
@@ -62,8 +58,6 @@ self.addEventListener('push', (event) => {
 
 // Clic sur la notification
 self.addEventListener('notificationclick', (event) => {
-    console.log('🖱️ Clic sur notification');
-    
     event.notification.close();
 
     if (event.action === 'close') {
@@ -75,7 +69,6 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then((clientList) => {
-                // Si une fenêtre est déjà ouverte, la focus
                 for (const client of clientList) {
                     if (client.url.includes(self.location.origin) && 'focus' in client) {
                         client.focus();
@@ -83,7 +76,6 @@ self.addEventListener('notificationclick', (event) => {
                         return;
                     }
                 }
-                // Sinon, ouvrir une nouvelle fenêtre
                 if (clients.openWindow) {
                     return clients.openWindow(urlToOpen);
                 }
@@ -93,6 +85,5 @@ self.addEventListener('notificationclick', (event) => {
 
 // Fermeture de la notification
 self.addEventListener('notificationclose', (event) => {
-    console.log('❌ Notification fermée');
+    // Notification fermée
 });
-
