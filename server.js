@@ -1,7 +1,36 @@
 const express = require('express');
 const cors = require('cors');
 const cloudinary = require('cloudinary').v2;
+const webpush = require('web-push');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
+
+// Fichier pour stocker les abonnements push
+const SUBSCRIPTIONS_FILE = path.join(__dirname, 'push-subscriptions.json');
+
+// Charger les abonnements existants
+function loadSubscriptions() {
+    try {
+        if (fs.existsSync(SUBSCRIPTIONS_FILE)) {
+            return JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE, 'utf8'));
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des abonnements:', error);
+    }
+    return [];
+}
+
+// Sauvegarder les abonnements
+function saveSubscriptions(subscriptions) {
+    try {
+        fs.writeFileSync(SUBSCRIPTIONS_FILE, JSON.stringify(subscriptions, null, 2));
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde des abonnements:', error);
+    }
+}
+
+let pushSubscriptions = loadSubscriptions();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -74,6 +103,19 @@ cloudinary.config(cloudinaryConfig);
 const PREFIX = process.env.CLOUDINARY_PREFIX || 'storybird1/';
 const FAVORITE_TAG = 'favoris';
 const TRASH_FOLDER = 'corbeille';
+
+// Configuration Web Push (VAPID)
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const VAPID_EMAIL = process.env.VAPID_EMAIL || 'mailto:contact@storybird.app';
+
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+    console.log('✅ Notifications push configurées');
+} else {
+    console.log('⚠️  Notifications push non configurées (clés VAPID manquantes)');
+    console.log('   Pour générer des clés: npx web-push generate-vapid-keys');
+}
 
 // Fonction de validation pour s'assurer que le public_id appartient au préfixe
 function validatePublicId(publicId) {
@@ -233,6 +275,144 @@ app.get('/api/pi-config', (req, res) => {
         streamPath: '/birdcam/'
     });
 });
+
+// === NOTIFICATIONS PUSH ===
+
+// Route pour récupérer la clé publique VAPID
+app.get('/api/push/vapid-public-key', (req, res) => {
+    if (!VAPID_PUBLIC_KEY) {
+        return res.status(503).json({ error: 'Notifications push non configurées' });
+    }
+    res.json({ publicKey: VAPID_PUBLIC_KEY });
+});
+
+// Route pour s'abonner aux notifications push
+app.post('/api/push/subscribe', (req, res) => {
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+        return res.status(503).json({ error: 'Notifications push non configurées' });
+    }
+
+    const subscription = req.body;
+    
+    if (!subscription || !subscription.endpoint) {
+        return res.status(400).json({ error: 'Abonnement invalide' });
+    }
+
+    // Vérifier si l'abonnement existe déjà
+    const existingIndex = pushSubscriptions.findIndex(
+        sub => sub.endpoint === subscription.endpoint
+    );
+
+    if (existingIndex === -1) {
+        pushSubscriptions.push(subscription);
+        saveSubscriptions(pushSubscriptions);
+        console.log('📱 Nouvel abonnement push enregistré');
+    }
+
+    res.json({ success: true });
+});
+
+// Route pour se désabonner des notifications push
+app.post('/api/push/unsubscribe', (req, res) => {
+    const subscription = req.body;
+    
+    if (!subscription || !subscription.endpoint) {
+        return res.status(400).json({ error: 'Abonnement invalide' });
+    }
+
+    pushSubscriptions = pushSubscriptions.filter(
+        sub => sub.endpoint !== subscription.endpoint
+    );
+    saveSubscriptions(pushSubscriptions);
+    console.log('📱 Abonnement push supprimé');
+
+    res.json({ success: true });
+});
+
+// Webhook Cloudinary pour les nouvelles vidéos
+app.post('/api/webhook/cloudinary', async (req, res) => {
+    try {
+        const { notification_type, public_id, resource_type, secure_url } = req.body;
+
+        // Vérifier que c'est bien un upload de vidéo
+        if (notification_type === 'upload' && resource_type === 'video') {
+            // Vérifier que la vidéo appartient à notre préfixe
+            if (validatePublicId(public_id)) {
+                console.log('🎬 Nouvelle vidéo détectée:', public_id);
+                
+                // Envoyer une notification push à tous les abonnés
+                await sendPushNotifications({
+                    title: '🐦 Nouvelle vidéo !',
+                    body: 'Un oiseau a été détecté sur la mangeoire',
+                    icon: '/images/logo3.png',
+                    badge: '/images/logo3.png',
+                    data: {
+                        url: '/',
+                        videoUrl: secure_url
+                    }
+                });
+            }
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Erreur webhook Cloudinary:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Fonction pour envoyer les notifications push
+async function sendPushNotifications(payload) {
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+        console.log('⚠️  Notifications push non configurées, notification ignorée');
+        return;
+    }
+
+    const payloadString = JSON.stringify(payload);
+    const invalidSubscriptions = [];
+
+    const sendPromises = pushSubscriptions.map(async (subscription, index) => {
+        try {
+            await webpush.sendNotification(subscription, payloadString);
+            console.log('✅ Notification envoyée');
+        } catch (error) {
+            console.error('❌ Erreur envoi notification:', error.message);
+            
+            // Si l'abonnement n'est plus valide, le marquer pour suppression
+            if (error.statusCode === 410 || error.statusCode === 404) {
+                invalidSubscriptions.push(index);
+            }
+        }
+    });
+
+    await Promise.all(sendPromises);
+
+    // Supprimer les abonnements invalides
+    if (invalidSubscriptions.length > 0) {
+        pushSubscriptions = pushSubscriptions.filter(
+            (_, index) => !invalidSubscriptions.includes(index)
+        );
+        saveSubscriptions(pushSubscriptions);
+        console.log(`🗑️ ${invalidSubscriptions.length} abonnement(s) invalide(s) supprimé(s)`);
+    }
+}
+
+// Route de test pour envoyer une notification (développement uniquement)
+if (process.env.NODE_ENV !== 'production') {
+    app.post('/api/push/test', async (req, res) => {
+        try {
+            await sendPushNotifications({
+                title: '🐦 Test notification',
+                body: 'Les notifications push fonctionnent !',
+                icon: '/images/logo3.png',
+                data: { url: '/' }
+            });
+            res.json({ success: true, subscribers: pushSubscriptions.length });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+}
 
 // Servir les fichiers statiques
 app.use(express.static('.'));
