@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const cloudinary = require('cloudinary').v2;
 const webpush = require('web-push');
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -45,8 +44,6 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.text());
 
 // Fonction pour parser CLOUDINARY_URL
 // Format: cloudinary://api_key:api_secret@cloud_name
@@ -330,85 +327,34 @@ app.post('/api/push/unsubscribe', (req, res) => {
     res.json({ success: true });
 });
 
-// Fonction pour vérifier la signature du webhook Cloudinary
-function verifyCloudinarySignature(body, timestamp, signature) {
-    if (!cloudinaryConfig.api_secret) {
-        return false;
-    }
-    
-    // Cloudinary signe avec : SHA256(body + timestamp + api_secret)
-    const payload = JSON.stringify(body) + timestamp + cloudinaryConfig.api_secret;
-    const expectedSignature = crypto
-        .createHash('sha256')
-        .update(payload)
-        .digest('hex');
-    
-    return signature === expectedSignature;
-}
-
-// Webhook Cloudinary pour les nouvelles vidéos
+// Webhook pour les nouvelles vidéos (appelé par le Raspberry Pi)
 app.post('/api/webhook/cloudinary', async (req, res) => {
     try {
-        // Parser les données (Cloudinary peut envoyer JSON, form-data ou urlencoded)
-        let data = req.body;
-        
-        // Si c'est une string, essayer de parser en JSON
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                // Pas du JSON valide, garder tel quel
-            }
-        }
-        
-        // Cloudinary peut envoyer les données dans un champ "notification"
-        if (data.notification) {
-            try {
-                data = typeof data.notification === 'string' 
-                    ? JSON.parse(data.notification) 
-                    : data.notification;
-            } catch (e) {
-                // Pas du JSON
-            }
+        const { notification_type, public_id, secure_url, resource_type } = req.body;
+
+        // Vérifier que c'est bien un upload
+        if (notification_type !== 'upload') {
+            return res.status(400).json({ error: 'Type de notification non supporté' });
         }
 
-        // Vérifier la signature du webhook (si présente)
-        const signature = req.headers['x-cld-signature'];
-        const timestamp = req.headers['x-cld-timestamp'];
-        
-        if (signature && timestamp) {
-            if (!verifyCloudinarySignature(data, timestamp, signature)) {
-                return res.status(401).json({ error: 'Signature invalide' });
-            }
+        // Vérifier que c'est une vidéo appartenant à notre préfixe
+        if (resource_type === 'video' && validatePublicId(public_id)) {
+            // Envoyer une notification push à tous les abonnés
+            await sendPushNotifications({
+                title: '🐦 Nouvelle vidéo !',
+                body: 'Un oiseau a été détecté sur la mangeoire',
+                icon: '/images/icon.png',
+                badge: '/images/icon.png',
+                data: {
+                    url: '/',
+                    videoUrl: secure_url
+                }
+            });
         }
 
-        // Extraire les informations
-        const notificationType = data.notification_type || data.type;
-        const publicId = data.public_id;
-        const resourceType = data.resource_type;
-        const secureUrl = data.secure_url || data.url;
-
-        // Vérifier que c'est bien un upload de vidéo
-        if (notificationType === 'upload' && resourceType === 'video') {
-            // Vérifier que la vidéo appartient à notre préfixe
-            if (validatePublicId(publicId)) {
-                // Envoyer une notification push à tous les abonnés
-                await sendPushNotifications({
-                    title: '🐦 Nouvelle vidéo !',
-                    body: 'Un oiseau a été détecté sur la mangeoire',
-                    icon: '/images/logo3.png',
-                    badge: '/images/logo3.png',
-                    data: {
-                        url: '/',
-                        videoUrl: secureUrl
-                    }
-                });
-            }
-        }
-
-        res.json({ success: true });
+        res.json({ success: true, received: public_id });
     } catch (error) {
-        console.error('Erreur webhook Cloudinary:', error);
+        console.error('Erreur webhook:', error);
         res.status(500).json({ error: error.message });
     }
 });
