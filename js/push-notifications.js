@@ -67,7 +67,7 @@ async function subscribeToPush() {
 
         isSubscribed = true;
         updateNotificationButton();
-        showNotificationToast('🔔 Notifications activées !');
+        showNotificationToast('Notifications activées !');
         return true;
     } catch (error) {
         showNotificationToast('Erreur lors de l\'activation des notifications');
@@ -91,7 +91,7 @@ async function unsubscribeFromPush() {
 
         isSubscribed = false;
         updateNotificationButton();
-        showNotificationToast('🔕 Notifications désactivées');
+        showNotificationToast('Notifications désactivées');
         return true;
     } catch (error) {
         return false;
