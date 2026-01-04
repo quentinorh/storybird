@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storybird - Connexion</title>
+    <link rel="icon" type="image/png" href="/images/icon.png">
+    <link rel="shortcut icon" type="image/png" href="/images/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#4ea7d7">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <img src="images/logo3.png" alt="Storybird" class="logo-img">
+            </div>
+            <h1 class="login-title">Bienvenue</h1>
+            <p class="login-subtitle">Entrez le code d'accès pour continuer</p>
+            
+            <form id="login-form" class="login-form">
+                <div class="input-group">
+                    <input 
+                        type="password" 
+                        id="access-code" 
+                        name="code" 
+                        placeholder="Code d'accès"
+                        autocomplete="off"
+                        required
+                    >
+                </div>
+                <div id="error-message" class="error-message" style="display: none;">
+                    Code incorrect
+                </div>
+                <button type="submit" class="login-btn">
+                    <span>Entrer</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+        const codeInput = document.getElementById('access-code');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMessage.style.display = 'none';
+            
+            const code = codeInput.value;
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+
+                if (response.ok) {
+                    // Rediriger vers la page d'accueil
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect') || '/';
+                    window.location.href = redirect;
+                } else {
+                    errorMessage.style.display = 'block';
+                    codeInput.value = '';
+                    codeInput.focus();
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Erreur de connexion';
+                errorMessage.style.display = 'block';
+            }
+        });
+
+        // Focus automatique sur le champ
+        codeInput.focus();
+    </script>
+</body>
+</html>
+

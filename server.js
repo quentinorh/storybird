@@ -1,9 +1,25 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
 const cloudinary = require('cloudinary').v2;
 const webpush = require('web-push');
 const { createClient } = require('@libsql/client');
 require('dotenv').config();
+
+// Configuration de l'authentification
+const ACCESS_CODE = process.env.ACCESS_CODE;
+const AUTH_ENABLED = !!ACCESS_CODE;
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+
+// Stockage simple des sessions en mémoire (suffisant pour une app personnelle)
+const sessions = new Map();
+
+if (AUTH_ENABLED) {
+    console.log('🔐 Authentification activée');
+} else {
+    console.log('⚠️  Authentification désactivée (ACCESS_CODE non défini)');
+}
 
 // Configuration Turso
 let db = null;
@@ -98,6 +114,79 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
+
+// Middleware d'authentification
+function requireAuth(req, res, next) {
+    // Si l'authentification n'est pas activée, passer
+    if (!AUTH_ENABLED) {
+        return next();
+    }
+
+    // Vérifier le cookie de session
+    const sessionId = req.cookies.session_id;
+    if (sessionId && sessions.has(sessionId)) {
+        return next();
+    }
+
+    // Si c'est une requête API, retourner 401
+    if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    // Sinon, rediriger vers la page de login
+    const redirect = encodeURIComponent(req.originalUrl);
+    return res.redirect(`/login.html?redirect=${redirect}`);
+}
+
+// Route de login (toujours accessible)
+app.post('/api/auth/login', (req, res) => {
+    const { code } = req.body;
+
+    if (!AUTH_ENABLED) {
+        return res.json({ success: true });
+    }
+
+    if (code === ACCESS_CODE) {
+        // Créer une session
+        const sessionId = crypto.randomBytes(32).toString('hex');
+        sessions.set(sessionId, { createdAt: Date.now() });
+
+        // Cookie sécurisé (30 jours)
+        res.cookie('session_id', sessionId, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 jours
+        });
+
+        return res.json({ success: true });
+    }
+
+    return res.status(401).json({ error: 'Code incorrect' });
+});
+
+// Route de logout
+app.post('/api/auth/logout', (req, res) => {
+    const sessionId = req.cookies.session_id;
+    if (sessionId) {
+        sessions.delete(sessionId);
+    }
+    res.clearCookie('session_id');
+    res.json({ success: true });
+});
+
+// Pages publiques (login, assets)
+app.get('/login.html', (req, res, next) => {
+    // Si déjà authentifié, rediriger vers l'accueil
+    if (AUTH_ENABLED) {
+        const sessionId = req.cookies.session_id;
+        if (sessionId && sessions.has(sessionId)) {
+            return res.redirect('/');
+        }
+    }
+    next();
+});
 
 // Fonction pour parser CLOUDINARY_URL
 // Format: cloudinary://api_key:api_secret@cloud_name
@@ -181,6 +270,12 @@ function validatePublicId(publicId) {
     // Vérifier que le public_id commence par le préfixe
     return publicId.startsWith(normalizedPrefix + '/') || publicId === normalizedPrefix;
 }
+
+// Protéger les routes API (sauf auth et webhook)
+app.use('/api/videos', requireAuth);
+app.use('/api/pi-config', requireAuth);
+app.use('/api/push/subscribe', requireAuth);
+app.use('/api/push/unsubscribe', requireAuth);
 
 // Route pour récupérer toutes les vidéos
 app.get('/api/videos', async (req, res) => {
@@ -455,6 +550,19 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Servir les fichiers statiques
+// Assets publics (CSS, JS, images, manifest, sw.js)
+app.use('/css', express.static('css'));
+app.use('/js', express.static('js'));
+app.use('/images', express.static('images'));
+app.use('/manifest.json', express.static('manifest.json'));
+app.use('/sw.js', express.static('sw.js'));
+app.use('/robots.txt', express.static('robots.txt'));
+
+// Page de login accessible sans authentification
+app.use('/login.html', express.static('login.html'));
+
+// Pages protégées par authentification
+app.use(requireAuth);
 app.use(express.static('.'));
 
 // Démarrer le serveur
