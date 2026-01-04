@@ -24,9 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
 // Arrêter le stream quand on quitte la page
 window.addEventListener('beforeunload', stopStream);
 window.addEventListener('pagehide', stopStream);
+
+// Gérer le changement de visibilité (changement d'onglet)
 document.addEventListener('visibilitychange', () => {
-    if (document.hidden && isStreaming) {
-        stopStream();
+    if (document.hidden) {
+        // L'utilisateur quitte l'onglet -> arrêter le stream
+        if (isStreaming) {
+            stopStream();
+            // Vider l'iframe pour économiser les ressources
+            liveIframeEl.src = '';
+        }
+    } else {
+        // L'utilisateur revient sur l'onglet -> redémarrer le stream
+        if (piUrl && !isStreaming) {
+            startLive();
+        }
     }
 });
 
@@ -72,24 +84,26 @@ async function startLive() {
             throw new Error(streamData.error || 'Erreur de démarrage');
         }
     } catch (err) {
-        console.error('Erreur:', err);
         showError('Connexion impossible');
     }
 }
 
-async function stopStream() {
+function stopStream() {
     if (!piUrl || !isStreaming) return;
     
     isStreaming = false;
     
+    // Utiliser sendBeacon pour garantir l'envoi même si la page se ferme
+    // sendBeacon ne supporte que les requêtes same-origin, donc on utilise fetch avec keepalive
     try {
-        await fetch(`${piUrl}/api/streaming/stop`, {
+        fetch(`${piUrl}/api/streaming/stop`, {
             method: 'POST',
             mode: 'cors',
-            credentials: 'omit'
+            credentials: 'omit',
+            keepalive: true  // Permet à la requête de continuer même si la page se ferme
         });
     } catch (err) {
-        console.error('Erreur arrêt:', err);
+        // Ignorer les erreurs silencieusement
     }
 }
 
