@@ -6,6 +6,7 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 // État
 let piUrl = null;
 let isStreaming = false;
+let cachedPiConfig = null; // Cache de la configuration du Pi
 
 // Éléments du DOM
 const loadingEl = document.getElementById('loading');
@@ -52,13 +53,70 @@ function setupEventListeners() {
     }
 }
 
+// Fonction pour vérifier le statut du streaming via l'API du Pi
+async function waitForStreamReady(maxWait = 3000) {
+    const startTime = Date.now();
+    const checkInterval = 200; // Vérifier toutes les 200ms
+    
+    while (Date.now() - startTime < maxWait) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 500);
+            
+            // Vérifier le statut via l'API du Pi
+            const res = await fetch(`${piUrl}/api/status`, {
+                method: 'GET',
+                mode: 'cors',
+                credentials: 'omit',
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (res.ok) {
+                const data = await res.json();
+                // Si le stream est actif (streaming.active === true), on peut continuer
+                if (data.streaming?.active === true) {
+                    // Petit délai pour laisser le fichier HLS se générer
+                    await new Promise(r => setTimeout(r, 300));
+                    return true;
+                }
+            }
+        } catch {
+            // Endpoint non disponible ou erreur, continuer à attendre
+        }
+        
+        await new Promise(r => setTimeout(r, checkInterval));
+    }
+    
+    // Timeout atteint, continuer quand même
+    return false;
+}
+
+// Récupérer la configuration du Pi (avec cache)
+async function getPiConfig() {
+    // Utiliser le cache si disponible
+    if (cachedPiConfig) {
+        return cachedPiConfig;
+    }
+    
+    const res = await fetch(`${API_BASE_URL}/pi-config`);
+    const data = await res.json();
+    
+    // Mettre en cache si configuré
+    if (data.configured) {
+        cachedPiConfig = data;
+    }
+    
+    return data;
+}
+
 async function startLive() {
     showLoading();
 
     try {
-        // Charger la config
-        const res = await fetch(`${API_BASE_URL}/pi-config`);
-        const data = await res.json();
+        // Charger la config (avec cache)
+        const data = await getPiConfig();
 
         if (!data.configured) {
             showError('Streaming non configuré');
@@ -77,8 +135,20 @@ async function startLive() {
 
         if (streamData.success) {
             isStreaming = true;
-            // Attendre que le flux soit prêt
-            await new Promise(r => setTimeout(r, 3000));
+            
+            // Utiliser le délai retourné par l'API, ou 1 seconde par défaut
+            // (réduit par rapport aux 3 secondes originales)
+            const startupDelay = streamData.startupDelay || 1000;
+            
+            // Essayer de détecter quand le stream est prêt via l'API status
+            // Si l'API n'existe pas, on fallback sur le délai fixe
+            const isReady = await waitForStreamReady(startupDelay);
+            
+            // Si le status n'a pas confirmé, attendre un petit délai de sécurité
+            if (!isReady) {
+                await new Promise(r => setTimeout(r, 500));
+            }
+            
             showVideo();
         } else {
             throw new Error(streamData.error || 'Erreur de démarrage');
@@ -152,3 +222,5 @@ function showInfoModal() {
     okBtn.addEventListener('click', handleOk);
     modal.addEventListener('click', handleOverlayClick);
 }
+
+
