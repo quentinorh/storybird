@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cloudinary = require('cloudinary').v2;
 const webpush = require('web-push');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -327,9 +328,35 @@ app.post('/api/push/unsubscribe', (req, res) => {
     res.json({ success: true });
 });
 
+// Fonction pour vérifier la signature du webhook Cloudinary
+function verifyCloudinarySignature(body, timestamp, signature) {
+    if (!cloudinaryConfig.api_secret) {
+        return false;
+    }
+    
+    // Cloudinary signe avec : SHA256(body + timestamp + api_secret)
+    const payload = JSON.stringify(body) + timestamp + cloudinaryConfig.api_secret;
+    const expectedSignature = crypto
+        .createHash('sha256')
+        .update(payload)
+        .digest('hex');
+    
+    return signature === expectedSignature;
+}
+
 // Webhook Cloudinary pour les nouvelles vidéos
 app.post('/api/webhook/cloudinary', async (req, res) => {
     try {
+        // Vérifier la signature du webhook
+        const signature = req.headers['x-cld-signature'];
+        const timestamp = req.headers['x-cld-timestamp'];
+        
+        if (signature && timestamp) {
+            if (!verifyCloudinarySignature(req.body, timestamp, signature)) {
+                return res.status(401).json({ error: 'Signature invalide' });
+            }
+        }
+
         const { notification_type, public_id, resource_type, secure_url } = req.body;
 
         // Vérifier que c'est bien un upload de vidéo
