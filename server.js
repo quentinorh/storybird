@@ -45,6 +45,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.text());
 
 // Fonction pour parser CLOUDINARY_URL
 // Format: cloudinary://api_key:api_secret@cloud_name
@@ -347,22 +349,49 @@ function verifyCloudinarySignature(body, timestamp, signature) {
 // Webhook Cloudinary pour les nouvelles vidéos
 app.post('/api/webhook/cloudinary', async (req, res) => {
     try {
-        // Vérifier la signature du webhook
+        // Parser les données (Cloudinary peut envoyer JSON, form-data ou urlencoded)
+        let data = req.body;
+        
+        // Si c'est une string, essayer de parser en JSON
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                // Pas du JSON valide, garder tel quel
+            }
+        }
+        
+        // Cloudinary peut envoyer les données dans un champ "notification"
+        if (data.notification) {
+            try {
+                data = typeof data.notification === 'string' 
+                    ? JSON.parse(data.notification) 
+                    : data.notification;
+            } catch (e) {
+                // Pas du JSON
+            }
+        }
+
+        // Vérifier la signature du webhook (si présente)
         const signature = req.headers['x-cld-signature'];
         const timestamp = req.headers['x-cld-timestamp'];
         
         if (signature && timestamp) {
-            if (!verifyCloudinarySignature(req.body, timestamp, signature)) {
+            if (!verifyCloudinarySignature(data, timestamp, signature)) {
                 return res.status(401).json({ error: 'Signature invalide' });
             }
         }
 
-        const { notification_type, public_id, resource_type, secure_url } = req.body;
+        // Extraire les informations
+        const notificationType = data.notification_type || data.type;
+        const publicId = data.public_id;
+        const resourceType = data.resource_type;
+        const secureUrl = data.secure_url || data.url;
 
         // Vérifier que c'est bien un upload de vidéo
-        if (notification_type === 'upload' && resource_type === 'video') {
+        if (notificationType === 'upload' && resourceType === 'video') {
             // Vérifier que la vidéo appartient à notre préfixe
-            if (validatePublicId(public_id)) {
+            if (validatePublicId(publicId)) {
                 // Envoyer une notification push à tous les abonnés
                 await sendPushNotifications({
                     title: '🐦 Nouvelle vidéo !',
@@ -371,7 +400,7 @@ app.post('/api/webhook/cloudinary', async (req, res) => {
                     badge: '/images/logo3.png',
                     data: {
                         url: '/',
-                        videoUrl: secure_url
+                        videoUrl: secureUrl
                     }
                 });
             }
