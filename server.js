@@ -2,35 +2,89 @@ const express = require('express');
 const cors = require('cors');
 const cloudinary = require('cloudinary').v2;
 const webpush = require('web-push');
-const fs = require('fs');
-const path = require('path');
+const { createClient } = require('@libsql/client');
 require('dotenv').config();
 
-// Fichier pour stocker les abonnements push
-const SUBSCRIPTIONS_FILE = path.join(__dirname, 'push-subscriptions.json');
-
-// Charger les abonnements existants
-function loadSubscriptions() {
-    try {
-        if (fs.existsSync(SUBSCRIPTIONS_FILE)) {
-            return JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE, 'utf8'));
-        }
-    } catch (error) {
-        console.error('Erreur lors du chargement des abonnements:', error);
-    }
-    return [];
+// Configuration Turso
+let db = null;
+if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+    db = createClient({
+        url: process.env.TURSO_DATABASE_URL,
+        authToken: process.env.TURSO_AUTH_TOKEN
+    });
+    console.log('✅ Base de données Turso connectée');
+} else {
+    console.log('⚠️  Turso non configuré - les abonnements push ne seront pas persistants');
 }
 
-// Sauvegarder les abonnements
-function saveSubscriptions(subscriptions) {
+// Initialiser la table des abonnements push
+async function initDatabase() {
+    if (!db) return;
     try {
-        fs.writeFileSync(SUBSCRIPTIONS_FILE, JSON.stringify(subscriptions, null, 2));
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                endpoint TEXT UNIQUE NOT NULL,
+                subscription_data TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
     } catch (error) {
-        console.error('Erreur lors de la sauvegarde des abonnements:', error);
+        console.error('Erreur initialisation DB:', error);
     }
 }
 
-let pushSubscriptions = loadSubscriptions();
+// Charger les abonnements depuis Turso
+async function loadSubscriptions() {
+    if (!db) return [];
+    try {
+        const result = await db.execute('SELECT subscription_data FROM push_subscriptions');
+        return result.rows.map(row => JSON.parse(row.subscription_data));
+    } catch (error) {
+        console.error('Erreur chargement abonnements:', error);
+        return [];
+    }
+}
+
+// Ajouter un abonnement
+async function addSubscription(subscription) {
+    if (!db) return;
+    try {
+        await db.execute({
+            sql: 'INSERT OR REPLACE INTO push_subscriptions (endpoint, subscription_data) VALUES (?, ?)',
+            args: [subscription.endpoint, JSON.stringify(subscription)]
+        });
+    } catch (error) {
+        console.error('Erreur ajout abonnement:', error);
+    }
+}
+
+// Supprimer un abonnement
+async function removeSubscription(endpoint) {
+    if (!db) return;
+    try {
+        await db.execute({
+            sql: 'DELETE FROM push_subscriptions WHERE endpoint = ?',
+            args: [endpoint]
+        });
+    } catch (error) {
+        console.error('Erreur suppression abonnement:', error);
+    }
+}
+
+// Supprimer plusieurs abonnements par endpoints
+async function removeSubscriptionsByEndpoints(endpoints) {
+    if (!db || endpoints.length === 0) return;
+    try {
+        const placeholders = endpoints.map(() => '?').join(',');
+        await db.execute({
+            sql: `DELETE FROM push_subscriptions WHERE endpoint IN (${placeholders})`,
+            args: endpoints
+        });
+    } catch (error) {
+        console.error('Erreur suppression abonnements:', error);
+    }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -287,7 +341,7 @@ app.get('/api/push/vapid-public-key', (req, res) => {
 });
 
 // Route pour s'abonner aux notifications push
-app.post('/api/push/subscribe', (req, res) => {
+app.post('/api/push/subscribe', async (req, res) => {
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
         return res.status(503).json({ error: 'Notifications push non configurées' });
     }
@@ -298,31 +352,22 @@ app.post('/api/push/subscribe', (req, res) => {
         return res.status(400).json({ error: 'Abonnement invalide' });
     }
 
-    // Vérifier si l'abonnement existe déjà
-    const existingIndex = pushSubscriptions.findIndex(
-        sub => sub.endpoint === subscription.endpoint
-    );
-
-    if (existingIndex === -1) {
-        pushSubscriptions.push(subscription);
-        saveSubscriptions(pushSubscriptions);
-    }
+    // Ajouter l'abonnement à la base de données
+    await addSubscription(subscription);
 
     res.json({ success: true });
 });
 
 // Route pour se désabonner des notifications push
-app.post('/api/push/unsubscribe', (req, res) => {
+app.post('/api/push/unsubscribe', async (req, res) => {
     const subscription = req.body;
     
     if (!subscription || !subscription.endpoint) {
         return res.status(400).json({ error: 'Abonnement invalide' });
     }
 
-    pushSubscriptions = pushSubscriptions.filter(
-        sub => sub.endpoint !== subscription.endpoint
-    );
-    saveSubscriptions(pushSubscriptions);
+    // Supprimer l'abonnement de la base de données
+    await removeSubscription(subscription.endpoint);
 
     res.json({ success: true });
 });
@@ -365,16 +410,20 @@ async function sendPushNotifications(payload) {
         return;
     }
 
-    const payloadString = JSON.stringify(payload);
-    const invalidSubscriptions = [];
+    // Charger les abonnements depuis la base de données
+    const subscriptions = await loadSubscriptions();
+    if (subscriptions.length === 0) return;
 
-    const sendPromises = pushSubscriptions.map(async (subscription, index) => {
+    const payloadString = JSON.stringify(payload);
+    const invalidEndpoints = [];
+
+    const sendPromises = subscriptions.map(async (subscription) => {
         try {
             await webpush.sendNotification(subscription, payloadString);
         } catch (error) {
             // Si l'abonnement n'est plus valide, le marquer pour suppression
             if (error.statusCode === 410 || error.statusCode === 404) {
-                invalidSubscriptions.push(index);
+                invalidEndpoints.push(subscription.endpoint);
             }
         }
     });
@@ -382,11 +431,8 @@ async function sendPushNotifications(payload) {
     await Promise.all(sendPromises);
 
     // Supprimer les abonnements invalides
-    if (invalidSubscriptions.length > 0) {
-        pushSubscriptions = pushSubscriptions.filter(
-            (_, index) => !invalidSubscriptions.includes(index)
-        );
-        saveSubscriptions(pushSubscriptions);
+    if (invalidEndpoints.length > 0) {
+        await removeSubscriptionsByEndpoints(invalidEndpoints);
     }
 }
 
@@ -394,13 +440,14 @@ async function sendPushNotifications(payload) {
 if (process.env.NODE_ENV !== 'production') {
     app.post('/api/push/test', async (req, res) => {
         try {
+            const subscriptions = await loadSubscriptions();
             await sendPushNotifications({
                 title: '🐦 Test notification',
                 body: 'Les notifications push fonctionnent !',
-                icon: '/images/logo3.png',
+                icon: '/images/icon.png',
                 data: { url: '/' }
             });
-            res.json({ success: true, subscribers: pushSubscriptions.length });
+            res.json({ success: true, subscribers: subscriptions.length });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -410,8 +457,16 @@ if (process.env.NODE_ENV !== 'production') {
 // Servir les fichiers statiques
 app.use(express.static('.'));
 
-app.listen(PORT, () => {
-    console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
-    console.log(`📁 Préfixe Cloudinary: ${PREFIX}`);
-});
+// Démarrer le serveur
+async function startServer() {
+    // Initialiser la base de données
+    await initDatabase();
+    
+    app.listen(PORT, () => {
+        console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+        console.log(`📁 Préfixe Cloudinary: ${PREFIX}`);
+    });
+}
+
+startServer();
 
