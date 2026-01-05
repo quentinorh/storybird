@@ -22,15 +22,42 @@ let btnSettings = null;
 let btnSettingsCancel = null;
 let btnSettingsSave = null;
 let btnToggleDetection = null;
+let btnLive = null;
 let configFields = {};
 let statusElements = {};
+
+// Clé localStorage pour l'état du Pi
+const PI_STATUS_STORAGE_KEY = 'storybird_pi_online';
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
     initSettingsElements();
+    applyStoredPiStatus(); // Appliquer l'état sauvegardé immédiatement
     setupSettingsListeners();
     startHeartbeat();
 });
+
+// Appliquer l'état sauvegardé du Pi pour éviter le "flash"
+function applyStoredPiStatus() {
+    const storedStatus = localStorage.getItem(PI_STATUS_STORAGE_KEY);
+    // Par défaut, on considère hors ligne si pas d'état sauvegardé
+    const isOnline = storedStatus === 'true';
+    
+    // Appliquer l'opacité immédiatement
+    if (btnSettings) {
+        btnSettings.style.opacity = isOnline ? '1' : '0.3';
+        btnSettings.style.pointerEvents = isOnline ? 'auto' : 'none';
+    }
+    if (btnLive) {
+        btnLive.style.opacity = isOnline ? '1' : '0.3';
+        btnLive.style.pointerEvents = isOnline ? 'auto' : 'none';
+    }
+    
+    // Rediriger si sur /live et Pi hors ligne
+    if (!isOnline && window.location.pathname === '/live') {
+        window.location.href = '/';
+    }
+}
 
 // Initialiser les références aux éléments du DOM
 function initSettingsElements() {
@@ -44,6 +71,7 @@ function initSettingsElements() {
     btnSettingsSave = document.getElementById('modal-settings-save');
     
     btnToggleDetection = document.getElementById('btn-toggle-detection');
+    btnLive = document.getElementById('btn-live');
     
     configFields = {
         recordingDuration: document.getElementById('config-recording-duration'),
@@ -173,6 +201,9 @@ async function checkHeartbeat() {
 }
 
 function updateConnectionStatus(online, data = null) {
+    // Sauvegarder l'état dans localStorage pour éviter le flash au prochain chargement
+    localStorage.setItem(PI_STATUS_STORAGE_KEY, online.toString());
+    
     // Mettre à jour l'indicateur dans le header
     if (piStatusDot) {
         piStatusDot.classList.toggle('online', online);
@@ -181,6 +212,22 @@ function updateConnectionStatus(online, data = null) {
     
     if (piStatusText) {
         piStatusText.textContent = online ? 'en ligne' : 'hors ligne';
+    }
+    
+    // Ajuster l'opacité du bouton paramètres et de l'onglet "En direct" selon le statut
+    if (btnSettings) {
+        btnSettings.style.opacity = online ? '1' : '0.3';
+        btnSettings.style.pointerEvents = online ? 'auto' : 'none';
+    }
+    
+    if (btnLive) {
+        btnLive.style.opacity = online ? '1' : '0.3';
+        btnLive.style.pointerEvents = online ? 'auto' : 'none';
+    }
+    
+    // Rediriger vers la page principale si on est sur /live et que le Pi est hors ligne
+    if (!online && window.location.pathname === '/live') {
+        window.location.href = '/';
     }
     
     // Mettre à jour les cartes de statut dans la modale

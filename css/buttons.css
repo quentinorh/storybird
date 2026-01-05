@@ -87,7 +87,7 @@
 }
 
 .btn-cancel {
-    background: var(--primary-red);
+    background: #9c9c9c;
     opacity: 1;
     border: none;
 }

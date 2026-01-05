@@ -2,6 +2,15 @@
    Panneau de contrôle - Settings
    ========================================== */
 
+/* Réduire l'opacité des éléments qui nécessitent le Pi en ligne */
+/* Le JS restaurera l'opacité si le Pi est connecté */
+#btn-settings,
+#btn-live {
+    opacity: 0.3;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
 /* Indicateur de connexion Pi dans le header */
 .pi-status-indicator {
     position: absolute;
@@ -57,7 +66,7 @@
 .settings-button {
     position: absolute;
     top: 20px;
-    right: 75px;
+    right: 130px;
     width: 45px;
     height: 45px;
     padding: 0;
