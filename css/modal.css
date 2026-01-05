@@ -16,6 +16,11 @@
     display: flex;
 }
 
+/* Empêcher le scroll de la page quand une modale est ouverte */
+body.modal-open {
+    overflow: hidden;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -80,6 +85,7 @@
     padding: 24px;
     flex: 1;
     overflow-y: auto;
+    overscroll-behavior: contain;
     text-align: center;
 }
 

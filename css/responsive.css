@@ -7,10 +7,6 @@
         padding: 15px;
     }
 
-    body::before {
-        background-size: 150% auto;
-    }
-
     header {
         padding: 60px 20px 20px 20px;
     }
@@ -72,10 +68,6 @@
 }
 
 @media (max-width: 480px) {
-    body::before {
-        background-size: 120% auto;
-    }
-
     .logo-img {
         height: 200px;
     }

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Storybird - Live</title>
+    <%- include('partials/head') %>
+    <link rel="stylesheet" href="css/live.css">
+</head>
+<body>
+    <%- include('partials/header-buttons') %>
+    
+    <div class="container">
+        <header>
+            <div class="header-logo">
+                <a href="/">
+                    <img src="images/logo3.png" alt="Storybird" class="logo-img">
+                </a>
+            </div>
+            <div class="filters">
+                <a href="/" class="filter-btn" id="btn-all">
+                    <span>Toutes les vidéos</span>
+                </a>
+                <a href="/" class="filter-btn" id="btn-favorites">
+                    <span>Mes favoris</span>
+                </a>
+                <a href="/live" class="filter-btn active" id="btn-live">
+                    <span>En direct</span>
+                </a>
+            </div>
+        </header>
+
+        <main class="live-page">
+            <!-- État de chargement -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Connexion au flux...</p>
+            </div>
+
+            <!-- Conteneur vidéo -->
+            <div id="video-container" class="video-container" style="display: none;">
+                <iframe id="live-iframe" title="Live Stream" allowfullscreen></iframe>
+            </div>
+
+            <!-- État d'erreur -->
+            <div id="error-state" class="error-state" style="display: none;">
+                <p id="error-message">Impossible de se connecter au flux</p>
+                <button id="btn-retry" class="btn-retry">🔄 Réessayer</button>
+            </div>
+        </main>
+    </div>
+
+    <%- include('partials/toast') %>
+    <%- include('partials/modal-info') %>
+    <%- include('partials/modal-settings') %>
+    <%- include('partials/scroll-top') %>
+
+    <script src="js/live.js"></script>
+    <%- include('partials/scripts') %>
+</body>
+</html>
+

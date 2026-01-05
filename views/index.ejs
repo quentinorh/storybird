@@ -1,36 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Storybird - Mangeoire Connectée</title>
-    <link rel="icon" type="image/png" href="/images/icon.png">
-    <link rel="shortcut icon" type="image/png" href="/images/icon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#4ea7d7">
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="apple-touch-icon" href="/images/icon.png">
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/header.css">
+    <%- include('partials/head') %>
     <link rel="stylesheet" href="css/video.css">
-    <link rel="stylesheet" href="css/buttons.css">
-    <link rel="stylesheet" href="css/loading.css">
     <link rel="stylesheet" href="css/toast.css">
-    <link rel="stylesheet" href="css/modal.css">
-    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <button id="btn-notifications" class="notification-button" title="Activer les notifications">
-        <img src="images/bell.svg" alt="Notifications" class="notification-button-icon">
-    </button>
-    <button id="btn-info" class="info-button">
-        <img src="images/infos.svg" alt="Infos" class="info-button-icon">
-    </button>
+    <%- include('partials/header-buttons') %>
+    
     <div class="container">
         <header>
             <div class="header-logo">
@@ -45,7 +23,7 @@
                 <button id="btn-favorites" class="filter-btn">
                     <span>Mes favoris</span>
                 </button>
-                <a href="/live.html" class="filter-btn" id="btn-live">
+                <a href="/live" class="filter-btn" id="btn-live">
                     <span>En direct</span>
                 </a>
             </div>
@@ -65,11 +43,7 @@
         </main>
     </div>
 
-    <!-- Toast notification pour la copie -->
-    <div id="toast" class="toast">
-        <span class="toast-icon">✓</span>
-        <span class="toast-message">URL copiée dans le presse-papier !</span>
-    </div>
+    <%- include('partials/toast') %>
 
     <!-- Modale de confirmation -->
     <div id="modal-confirm" class="modal">
@@ -126,41 +100,7 @@
         </div>
     </div>
 
-    <!-- Modale d'infos -->
-    <div id="modal-info" class="modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-content modal-content-large">
-            <div class="modal-header">
-                <h2 class="modal-title">À propos de Storybird</h2>
-            </div>
-            <div class="modal-body">
-                <p>Storybird est une application web permettant de visualiser et gérer les vidéos capturées par une mangeoire à oiseaux connectée.</p>
-                
-                <h3 class="modal-section-title">Liens utiles</h3>
-                <div class="modal-links">
-                    <a href="https://github.com/quentinorh/storybird" target="_blank" rel="noopener noreferrer" class="modal-link">
-                        <span>📦</span>
-                        <span>Code serveur (GitHub)</span>
-                    </a>
-                    <a href="#" class="modal-link modal-link-coming" onclick="return false;">
-                        <span>🍓</span>
-                        <span>Code Raspberry Pi (GitHub) - À venir</span>
-                    </a>
-                    <a href="#" class="modal-link modal-link-coming" onclick="return false;">
-                        <span>🖨️</span>
-                        <span>Fichiers 3D (Thingiverse) - À venir</span>
-                    </a>
-                </div>
-
-                <div class="modal-license">
-                    <p>Ce projet est sous licence <strong>CC BY-NC-SA</strong> (Creative Commons Attribution - Non Commercial - Share Alike)</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="modal-info-ok" class="modal-btn modal-btn-primary">Fermer</button>
-            </div>
-        </div>
-    </div>
+    <%- include('partials/modal-info') %>
 
     <!-- Modale d'édition -->
     <div id="modal-edit" class="modal">
@@ -186,8 +126,11 @@
         </div>
     </div>
 
+    <%- include('partials/modal-settings') %>
+    <%- include('partials/scroll-top') %>
+
     <script src="js/script.js"></script>
-    <script src="js/push-notifications.js"></script>
+    <%- include('partials/scripts') %>
 </body>
 </html>
 

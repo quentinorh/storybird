@@ -105,6 +105,10 @@ async function removeSubscriptionsByEndpoints(endpoints) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configuration EJS
+app.set('view engine', 'ejs');
+app.set('views', './views');
+
 // Configuration CORS (restreint en production)
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production' 
@@ -561,7 +565,25 @@ app.use('/robots.txt', express.static('robots.txt'));
 // Page de login accessible sans authentification
 app.use('/login.html', express.static('login.html'));
 
-// Pages protégées par authentification
+// Routes protégées par authentification (rendu EJS)
+app.get('/', requireAuth, (req, res) => {
+    res.render('index');
+});
+
+app.get('/live', requireAuth, (req, res) => {
+    res.render('live');
+});
+
+// Redirection des anciennes URLs .html vers les nouvelles
+app.get('/index.html', requireAuth, (req, res) => {
+    res.redirect('/');
+});
+
+app.get('/live.html', requireAuth, (req, res) => {
+    res.redirect('/live');
+});
+
+// Autres fichiers statiques protégés
 app.use(requireAuth);
 app.use(express.static('.'));
 

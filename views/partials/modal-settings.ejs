@@ -1,0 +1,168 @@
+<!-- Modale Settings / Panneau de contrôle -->
+<div id="modal-settings" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-content-settings">
+        <div class="modal-header">
+            <h2 class="modal-title">Panneau de contrôle</h2>
+        </div>
+        <div class="modal-body settings-body">
+            <!-- Section État de connexion -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">
+                    <span class="settings-section-icon">📡</span>
+                    État du système
+                </h3>
+                
+                <div class="settings-status-grid">
+                    <div class="status-card" id="status-connection">
+                        <div class="status-card-icon">🔌</div>
+                        <div class="status-card-content">
+                            <span class="status-card-label">Connexion</span>
+                            <span class="status-card-value" id="status-connection-value">--</span>
+                        </div>
+                    </div>
+                    <div class="status-card" id="status-version">
+                        <div class="status-card-icon">📦</div>
+                        <div class="status-card-content">
+                            <span class="status-card-label">Version</span>
+                            <span class="status-card-value" id="status-version-value">--</span>
+                        </div>
+                    </div>
+                    <div class="status-card" id="status-uptime">
+                        <div class="status-card-icon">⏱️</div>
+                        <div class="status-card-content">
+                            <span class="status-card-label">Fonctionnement</span>
+                            <span class="status-card-value" id="status-uptime-value">--</span>
+                        </div>
+                    </div>
+                    <div class="status-card" id="status-temp">
+                        <div class="status-card-icon">🌡️</div>
+                        <div class="status-card-content">
+                            <span class="status-card-label">Température CPU</span>
+                            <span class="status-card-value" id="status-temp-value">--</span>
+                        </div>
+                    </div>
+                    <div class="status-card" id="status-disk">
+                        <div class="status-card-icon">💾</div>
+                        <div class="status-card-content">
+                            <span class="status-card-label">Mémoire</span>
+                            <span class="status-card-value" id="status-disk-value">--</span>
+                        </div>
+                    </div>
+                    <div class="status-card" id="status-detection">
+                        <div class="status-card-icon">🐦</div>
+                        <div class="status-card-content">
+                            <span class="status-card-label">Mode</span>
+                            <span class="status-card-value" id="status-detection-value">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Contrôle de la détection -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">
+                    <span class="settings-section-icon">🎮</span>
+                    Contrôle de la détection
+                </h3>
+                
+                <div class="detection-controls">
+                    <button id="btn-toggle-detection" class="control-btn control-btn-pause" disabled>
+                        <span class="control-btn-icon">⏸️</span>
+                        <span class="control-btn-text">Mettre en pause</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section Paramètres d'enregistrement -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">
+                    <span class="settings-section-icon">🎥</span>
+                    Enregistrement
+                </h3>
+                
+                <div class="settings-form-grid">
+                    <div class="form-group">
+                        <label for="config-recording-duration" class="form-label">
+                            Durée d'enregistrement
+                            <span class="form-hint">(secondes)</span>
+                        </label>
+                        <input type="number" id="config-recording-duration" class="form-input" min="5" max="60" value="15">
+                    </div>
+                    <div class="form-group">
+                        <label for="config-recording-cooldown" class="form-label">
+                            Temps d'attente
+                            <span class="form-hint">(minutes)</span>
+                        </label>
+                        <input type="number" id="config-recording-cooldown" class="form-input" min="0" max="5" value="1" step="0.5">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Mode nuit -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">
+                    <span class="settings-section-icon">🌙</span>
+                    Mode nuit
+                </h3>
+                
+                <div class="settings-form-grid">
+                    <div class="form-group form-group-full">
+                        <label class="form-toggle">
+                            <input type="checkbox" id="config-night-enabled">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Activer le mode nuit</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-night-start" class="form-label">
+                            Heure de début
+                        </label>
+                        <input type="number" id="config-night-start" class="form-input" min="0" max="23" value="21">
+                    </div>
+                    <div class="form-group">
+                        <label for="config-night-end" class="form-label">
+                            Heure de fin
+                        </label>
+                        <input type="number" id="config-night-end" class="form-input" min="0" max="23" value="7">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Sensibilité -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">
+                    <span class="settings-section-icon">🎯</span>
+                    Sensibilité de détection
+                </h3>
+                
+                <div class="settings-form-grid">
+                    <div class="form-group">
+                        <label for="config-motion-threshold" class="form-label">
+                            Seuil de mouvement
+                            <span class="form-hint">(500-10000)</span>
+                        </label>
+                        <input type="number" id="config-motion-threshold" class="form-input" min="500" max="10000" value="1500">
+                    </div>
+                    <div class="form-group">
+                        <label for="config-motion-frames" class="form-label">
+                            Frames consécutifs
+                            <span class="form-hint">(1-10)</span>
+                        </label>
+                        <input type="number" id="config-motion-frames" class="form-input" min="1" max="10" value="3">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer settings-footer">
+            <button id="modal-settings-cancel" class="modal-btn modal-btn-cancel">Annuler</button>
+            <button id="modal-settings-save" class="modal-btn modal-btn-primary">
+                <span class="btn-save-text">Sauvegarder</span>
+                <span class="btn-save-spinner" style="display: none;">
+                    <span class="mini-spinner"></span>
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
+
