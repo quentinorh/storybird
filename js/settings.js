@@ -43,6 +43,15 @@ function applyStoredPiStatus() {
     // Par défaut, on considère hors ligne si pas d'état sauvegardé
     const isOnline = storedStatus === 'true';
     
+    // Appliquer l'état de l'indicateur de connexion immédiatement
+    if (piStatusDot) {
+        piStatusDot.classList.toggle('online', isOnline);
+        piStatusDot.classList.toggle('offline', !isOnline);
+    }
+    if (piStatusText) {
+        piStatusText.textContent = isOnline ? 'en ligne' : 'hors ligne';
+    }
+    
     // Appliquer l'opacité immédiatement
     if (btnSettings) {
         btnSettings.style.opacity = isOnline ? '1' : '0.3';
