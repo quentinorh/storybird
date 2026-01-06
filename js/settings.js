@@ -183,7 +183,7 @@ async function startHeartbeat() {
     await checkHeartbeat();
     
     // Polling toutes les 30 secondes
-    heartbeatInterval = setInterval(checkHeartbeat, 30000);
+    heartbeatInterval = setInterval(checkHeartbeat, 10000);
 }
 
 // Récupérer la configuration du Pi (avec cache)
@@ -329,7 +329,7 @@ function updateConnectionStatus(online, data = null) {
         
         // État de la détection
         if (statusElements.detection && data.services) {
-            updateDetectionStatus(data.services);
+            updateDetectionStatus(data.mode, data.services);
         }
     } else if (!online) {
         // Réinitialiser les valeurs si hors ligne
@@ -339,30 +339,78 @@ function updateConnectionStatus(online, data = null) {
                 el.className = 'status-card-value';
             }
         });
+        
+        // Réinitialiser l'icône de détection
+        const statusCard = document.getElementById('status-detection');
+        if (statusCard) {
+            const iconElement = statusCard.querySelector('.status-card-icon');
+            if (iconElement) {
+                iconElement.textContent = '🐦';
+            }
+        }
     }
     
     // Activer/désactiver les boutons de contrôle
     updateControlButtons(online, data);
 }
 
-function updateDetectionStatus(services) {
+function updateDetectionStatus(mode, services) {
     if (!statusElements.detection) return;
     
-    const detection = services.detection;
-    const streaming = services.streaming;
+    const { detection, streaming } = services || {};
     
     let status = 'Inactif';
-    let statusClass = '';
+    let statusClass = 'idle';
+    let statusIcon = '⚪';
     
-    if (streaming?.active) {
-        status = 'Streaming actif';
-        statusClass = 'streaming';
-    } else if (detection?.active && detection?.paused) {
-        status = 'Détection en pause';
-        statusClass = 'paused';
-    } else if (detection?.active) {
-        status = 'Détection active';
-        statusClass = 'active';
+    // Utiliser le mode fourni par l'API (priorité décroissante)
+    switch (mode) {
+        case 'streaming':
+            status = 'Streaming actif';
+            statusClass = 'streaming';
+            statusIcon = '📹';
+            break;
+        case 'night':
+            status = 'Mode nuit';
+            statusClass = 'night';
+            statusIcon = '🌙';
+            break;
+        case 'paused':
+            status = 'Détection en pause';
+            statusClass = 'paused';
+            statusIcon = '⏸️';
+            break;
+        case 'recording':
+            status = 'Enregistrement...';
+            statusClass = 'recording';
+            statusIcon = '🔴';
+            break;
+        case 'cooldown':
+            const cooldownRemaining = detection?.cooldown_remaining || 0;
+            status = `Attente (${cooldownRemaining}s)`;
+            statusClass = 'cooldown';
+            statusIcon = '⏳';
+            break;
+        case 'detection':
+            status = 'Détection active';
+            statusClass = 'active';
+            statusIcon = '🟢';
+            break;
+        case 'idle':
+        default:
+            status = 'Inactif';
+            statusClass = 'idle';
+            statusIcon = '⚪';
+            break;
+    }
+    
+    // Mettre à jour l'icône dans la carte de statut si elle existe
+    const statusCard = document.getElementById('status-detection');
+    if (statusCard) {
+        const iconElement = statusCard.querySelector('.status-card-icon');
+        if (iconElement) {
+            iconElement.textContent = statusIcon;
+        }
     }
     
     statusElements.detection.textContent = status;

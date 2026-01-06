@@ -206,6 +206,28 @@
     color: var(--primary-blue);
 }
 
+.status-card-value.night {
+    color: #8b5cf6; /* Violet */
+}
+
+.status-card-value.recording {
+    color: #ef4444; /* Rouge */
+    animation: pulse-recording 1.5s ease-in-out infinite;
+}
+
+.status-card-value.cooldown {
+    color: #f59e0b; /* Jaune/Orange */
+}
+
+.status-card-value.idle {
+    color: #9ca3af; /* Gris */
+}
+
+@keyframes pulse-recording {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
 /* Contrôles de détection */
 .detection-controls {
     display: flex;
