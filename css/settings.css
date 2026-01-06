@@ -415,7 +415,226 @@
     color: var(--text-light);
 }
 
+/* ==========================================
+   Section Système - Shutdown / Reboot
+   ========================================== */
+
+.settings-section-system {
+    margin: 0 -24px -16px -24px;
+    padding: 24px !important;
+    border-bottom: none !important;
+    border-radius: 0 0 20px 20px;
+}
+
+.system-section-description {
+    font-size: 13px;
+    color: var(--text-light);
+    margin: 0 0 20px 0;
+    text-align: center;
+}
+
+.system-controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.system-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    min-width: 160px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.system-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Bouton Redémarrer - Orange */
+.system-btn-reboot {
+    background: #fff7ed;
+    border-color: #f97316;
+    color: #c2410c;
+}
+
+.system-btn-reboot:hover:not(:disabled) {
+    background: #fed7aa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+
+.system-btn-reboot:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+/* Bouton Éteindre - Rouge */
+.system-btn-shutdown {
+    background: #fef2f2;
+    border-color: #ef4444;
+    color: #b91c1c;
+}
+
+.system-btn-shutdown:hover:not(:disabled) {
+    background: #fecaca;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.system-btn-shutdown:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.system-btn-icon {
+    font-size: 18px;
+}
+
+/* État de traitement */
+.system-btn.processing {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.system-btn.processing .system-btn-icon {
+    animation: spin 1s linear infinite;
+}
+
+/* Modale de confirmation système */
+.modal-system-confirm {
+    z-index: 1100; /* Au-dessus de la modale settings (z-index: 1000) */
+}
+
+.modal-system-confirm .modal-content {
+    max-width: 420px;
+}
+
+.modal-system-confirm .modal-body {
+    text-align: center;
+}
+
+.system-confirm-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.system-confirm-icon.shutdown {
+    color: #ef4444;
+}
+
+.system-confirm-icon.reboot {
+    color: #f97316;
+}
+
+.system-confirm-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 12px 0;
+}
+
+.system-confirm-message {
+    font-size: 14px;
+    color: var(--text-light);
+    margin: 0 0 8px 0;
+    line-height: 1.5;
+}
+
+.system-confirm-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #b91c1c;
+    background: #fef2f2;
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+
+/* Boutons de confirmation */
+.modal-btn-shutdown {
+    background: #ef4444;
+    color: white;
+}
+
+.modal-btn-shutdown:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.modal-btn-reboot {
+    background: #f97316;
+    color: white;
+}
+
+.modal-btn-reboot:hover {
+    background: #ea580c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+/* Message de confirmation en cours */
+.system-action-pending {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0;
+}
+
+.system-action-pending .modal-spinner {
+    border-top-color: #ef4444;
+}
+
+.system-action-pending.reboot .modal-spinner {
+    border-top-color: #f97316;
+}
+
+.system-action-pending p {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
 /* Responsive */
+@media (max-width: 768px) {
+    .settings-button {
+        width: 38px;
+        height: 38px;
+        right: 110px;
+    }
+
+    .settings-button-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .pi-status-indicator {
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .pi-status-dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    .pi-status-text {
+        font-size: 11px;
+    }
+}
+
 @media (max-width: 600px) {    
     .modal-content-settings {
         max-height: 95vh;
@@ -445,6 +664,34 @@
     
     .status-card-value {
         font-size: 13px;
+    }
+    
+    .system-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .system-btn {
+        min-width: auto;
+    }
+    
+    .settings-section-system {
+        margin: 0 -16px -16px -16px;
+        padding: 20px !important;
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-button {
+        width: 34px;
+        height: 34px;
+        right: 100px;
+    }
+
+    .settings-button-icon {
+        width: 18px;
+        height: 18px;
     }
 }
 

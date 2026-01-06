@@ -26,6 +26,12 @@ let btnLive = null;
 let configFields = {};
 let statusElements = {};
 
+// Éléments du système (shutdown/reboot)
+let btnSystemShutdown = null;
+let btnSystemReboot = null;
+let modalSystemConfirm = null;
+let systemConfirmAction = null; // 'shutdown' ou 'reboot'
+
 // Clé localStorage pour l'état du Pi
 const PI_STATUS_STORAGE_KEY = 'storybird_pi_online';
 
@@ -100,6 +106,11 @@ function initSettingsElements() {
         disk: document.getElementById('status-disk-value'),
         detection: document.getElementById('status-detection-value')
     };
+    
+    // Éléments système (shutdown/reboot)
+    btnSystemShutdown = document.getElementById('btn-system-shutdown');
+    btnSystemReboot = document.getElementById('btn-system-reboot');
+    modalSystemConfirm = document.getElementById('modal-system-confirm');
 }
 
 // Configuration des listeners
@@ -130,6 +141,36 @@ function setupSettingsListeners() {
     // Bouton de contrôle de détection
     if (btnToggleDetection) {
         btnToggleDetection.addEventListener('click', toggleDetection);
+    }
+    
+    // Boutons système (shutdown/reboot)
+    if (btnSystemShutdown) {
+        btnSystemShutdown.addEventListener('click', () => openSystemConfirmModal('shutdown'));
+    }
+    
+    if (btnSystemReboot) {
+        btnSystemReboot.addEventListener('click', () => openSystemConfirmModal('reboot'));
+    }
+    
+    // Modale de confirmation système
+    if (modalSystemConfirm) {
+        const cancelBtn = document.getElementById('modal-system-cancel');
+        const confirmBtn = document.getElementById('modal-system-confirm-btn');
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', closeSystemConfirmModal);
+        }
+        
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', executeSystemAction);
+        }
+        
+        // Fermeture via overlay
+        modalSystemConfirm.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                closeSystemConfirmModal();
+            }
+        });
     }
 }
 
@@ -354,6 +395,15 @@ function updateControlButtons(online, data) {
             if (text) text.textContent = 'Mettre en pause';
         }
     }
+    
+    // Activer/désactiver les boutons système selon la connexion
+    if (btnSystemShutdown) {
+        btnSystemShutdown.disabled = !online;
+    }
+    
+    if (btnSystemReboot) {
+        btnSystemReboot.disabled = !online;
+    }
 }
 
 function formatUptime(seconds) {
@@ -560,6 +610,168 @@ async function toggleDetection() {
         const message = isPaused ? 'Erreur lors de la reprise' : 'Erreur lors de la mise en pause';
         showSettingsToast(message, 'error');
         btnToggleDetection.disabled = false;
+    }
+}
+
+// ==========================================
+// Gestion du système (Shutdown / Reboot)
+// ==========================================
+
+function openSystemConfirmModal(action) {
+    if (!modalSystemConfirm) return;
+    
+    systemConfirmAction = action;
+    
+    // Mettre à jour le contenu de la modale selon l'action
+    const icon = document.getElementById('system-confirm-icon');
+    const title = document.getElementById('system-confirm-title');
+    const message = document.getElementById('system-confirm-message');
+    const confirmBtn = document.getElementById('modal-system-confirm-btn');
+    const pendingDiv = document.getElementById('system-action-pending');
+    const contentDiv = document.getElementById('system-confirm-content');
+    const footer = document.getElementById('system-confirm-footer');
+    
+    // Réinitialiser l'affichage
+    if (contentDiv) contentDiv.style.display = 'block';
+    if (pendingDiv) pendingDiv.style.display = 'none';
+    if (footer) footer.style.display = 'flex';
+    
+    if (action === 'shutdown') {
+        if (icon) {
+            icon.textContent = '⏻';
+            icon.className = 'system-confirm-icon shutdown';
+        }
+        if (title) title.textContent = 'Éteindre le système ?';
+        if (message) message.textContent = 'Le Raspberry Pi va s\'éteindre. Vous devrez le rallumer manuellement.';
+        if (confirmBtn) {
+            confirmBtn.textContent = 'Éteindre';
+            confirmBtn.className = 'modal-btn modal-btn-shutdown';
+        }
+    } else if (action === 'reboot') {
+        if (icon) {
+            icon.textContent = '🔄';
+            icon.className = 'system-confirm-icon reboot';
+        }
+        if (title) title.textContent = 'Redémarrer le système ?';
+        if (message) message.textContent = 'Le Raspberry Pi va redémarrer. Il sera à nouveau disponible dans quelques instants.';
+        if (confirmBtn) {
+            confirmBtn.textContent = 'Redémarrer';
+            confirmBtn.className = 'modal-btn modal-btn-reboot';
+        }
+    }
+    
+    modalSystemConfirm.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+
+function closeSystemConfirmModal() {
+    if (!modalSystemConfirm) return;
+    
+    modalSystemConfirm.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    systemConfirmAction = null;
+}
+
+async function executeSystemAction() {
+    if (!settingsPiUrl || !systemConfirmAction) return;
+    
+    const action = systemConfirmAction;
+    const endpoint = action === 'shutdown' ? '/api/system/shutdown' : '/api/system/reboot';
+    
+    // Passer en mode "en cours"
+    const contentDiv = document.getElementById('system-confirm-content');
+    const pendingDiv = document.getElementById('system-action-pending');
+    const pendingMessage = document.getElementById('system-pending-message');
+    const footer = document.getElementById('system-confirm-footer');
+    
+    if (contentDiv) contentDiv.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+    
+    if (pendingDiv) {
+        pendingDiv.style.display = 'flex';
+        pendingDiv.className = `system-action-pending ${action}`;
+    }
+    
+    if (pendingMessage) {
+        pendingMessage.textContent = action === 'shutdown' 
+            ? 'Le système va s\'éteindre dans quelques secondes...' 
+            : 'Le système redémarre...';
+    }
+    
+    // Désactiver les boutons système
+    if (btnSystemShutdown) {
+        btnSystemShutdown.disabled = true;
+        btnSystemShutdown.classList.add('processing');
+    }
+    if (btnSystemReboot) {
+        btnSystemReboot.disabled = true;
+        btnSystemReboot.classList.add('processing');
+    }
+    
+    try {
+        const response = await fetch(`${settingsPiUrl}${endpoint}`, {
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'omit',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ delay: 5 })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log(`System ${action} initiated:`, data);
+            
+            // Afficher le message de succès
+            const successMessage = action === 'shutdown'
+                ? 'Extinction en cours... Le Pi va s\'éteindre.'
+                : 'Redémarrage en cours... Le Pi reviendra bientôt.';
+            
+            showSettingsToast(successMessage, 'success');
+            
+            // Mettre à jour le statut de connexion
+            setTimeout(() => {
+                updateConnectionStatus(false);
+            }, 3000);
+            
+            // Fermer les modales après un délai
+            setTimeout(() => {
+                closeSystemConfirmModal();
+                closeSettingsModal();
+            }, 5000);
+            
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Erreur serveur');
+        }
+    } catch (error) {
+        console.error(`Failed to ${action} system:`, error);
+        
+        // Restaurer l'affichage normal
+        if (contentDiv) contentDiv.style.display = 'block';
+        if (pendingDiv) pendingDiv.style.display = 'none';
+        if (footer) footer.style.display = 'flex';
+        
+        // Restaurer les boutons
+        if (btnSystemShutdown) {
+            btnSystemShutdown.classList.remove('processing');
+        }
+        if (btnSystemReboot) {
+            btnSystemReboot.classList.remove('processing');
+        }
+        
+        const errorMessage = action === 'shutdown'
+            ? 'Impossible d\'éteindre le système'
+            : 'Impossible de redémarrer le système';
+        
+        showSettingsToast(errorMessage, 'error');
+        
+        // Fermer la modale de confirmation
+        closeSystemConfirmModal();
+        
+        // Re-vérifier le heartbeat pour rétablir l'état des boutons
+        await checkHeartbeat();
     }
 }
 

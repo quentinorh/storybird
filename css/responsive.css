@@ -23,6 +23,59 @@
         font-size: 2.2em;
     }
 
+    /* Boutons filtres du header (onglets) */
+    .filter-btn {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+
+    .filter-btn-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .filters {
+        gap: 8px;
+    }
+
+    /* Boutons info, notifications et settings */
+    .info-button,
+    .notification-button,
+    .settings-button {
+        width: 38px;
+        height: 38px;
+    }
+
+    .info-button-icon,
+    .notification-button-icon,
+    .settings-button-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .notification-button {
+        right: 65px;
+    }
+
+    .settings-button {
+        right: 110px;
+    }
+
+    /* Indicateur de statut Pi */
+    .pi-status-indicator {
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .pi-status-dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    .pi-status-text {
+        font-size: 11px;
+    }
+
     .video-actions {
         gap: 6px;
     }
@@ -70,6 +123,59 @@
 @media (max-width: 480px) {
     .logo-img {
         height: 200px;
+    }
+
+    /* Boutons filtres du header (onglets) - encore plus compacts */
+    .filter-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .filter-btn-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .filters {
+        gap: 6px;
+    }
+
+    /* Boutons info, notifications et settings - plus petits */
+    .info-button,
+    .notification-button,
+    .settings-button {
+        width: 34px;
+        height: 34px;
+    }
+
+    .info-button-icon,
+    .notification-button-icon,
+    .settings-button-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .notification-button {
+        right: 60px;
+    }
+
+    .settings-button {
+        right: 100px;
+    }
+
+    /* Indicateur de statut Pi - encore plus compact */
+    .pi-status-indicator {
+        padding: 5px 8px;
+        gap: 5px;
+    }
+
+    .pi-status-dot {
+        width: 7px;
+        height: 7px;
+    }
+
+    .pi-status-text {
+        font-size: 10px;
     }
 
     .video-date-container {

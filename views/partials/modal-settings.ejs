@@ -1,3 +1,29 @@
+<!-- Modale de confirmation Système (shutdown/reboot) -->
+<div id="modal-system-confirm" class="modal modal-system-confirm">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-body">
+            <div id="system-confirm-content">
+                <div id="system-confirm-icon" class="system-confirm-icon">⏻</div>
+                <h3 id="system-confirm-title" class="system-confirm-title">Éteindre le système ?</h3>
+                <p id="system-confirm-message" class="system-confirm-message">
+                    Le Raspberry Pi va s'éteindre. Vous devrez le rallumer manuellement.
+                </p>
+                <div class="system-confirm-warning">
+                </div>
+            </div>
+            <div id="system-action-pending" class="system-action-pending" style="display: none;">
+                <div class="modal-spinner"></div>
+                <p id="system-pending-message">Le système va s'éteindre...</p>
+            </div>
+        </div>
+        <div id="system-confirm-footer" class="modal-footer">
+            <button id="modal-system-cancel" class="modal-btn modal-btn-cancel">Annuler</button>
+            <button id="modal-system-confirm-btn" class="modal-btn modal-btn-shutdown">Éteindre</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modale Settings / Panneau de contrôle -->
 <div id="modal-settings" class="modal">
     <div class="modal-overlay"></div>
@@ -151,6 +177,24 @@
                         </label>
                         <input type="number" id="config-motion-frames" class="form-input" min="1" max="10" value="3">
                     </div>
+                </div>
+            </div>
+
+            <!-- Section Système -->
+            <div class="settings-section settings-section-system">
+                <h3 class="settings-section-title">
+                    <span class="settings-section-icon">⚙️</span>
+                    Système
+                </h3>                
+                <div class="system-controls">
+                    <button id="btn-system-reboot" class="system-btn system-btn-reboot" disabled>
+                        <span class="system-btn-icon">🔄</span>
+                        <span class="system-btn-text">Redémarrer</span>
+                    </button>
+                    <button id="btn-system-shutdown" class="system-btn system-btn-shutdown" disabled>
+                        <span class="system-btn-icon">⏻</span>
+                        <span class="system-btn-text">Éteindre</span>
+                    </button>
                 </div>
             </div>
         </div>
